@@ -1,0 +1,208 @@
+/* ============================================================================
+   Feuille de style « Touche pas au klaxon »
+   ----------------------------------------------------------------------------
+   Les couleurs de la marque sont centralisées dans les variables CSS définies
+   dans :root. Un autre site de l'entreprise pourra réutiliser cette feuille de
+   style avec une autre palette en ne modifiant que ces variables (principe
+   repris de Bootstrap : variables CSS de personnalisation).
+   ========================================================================== */
+
+:root {
+    /* Palette de la marque « Touche pas au klaxon »                            */
+    --tpk-primary:        #0d6efd;   /* bleu principal  */
+    --tpk-primary-dark:   #0a58ca;
+    --tpk-secondary:      #6c757d;   /* gris secondaire */
+    --tpk-danger:         #dc3545;   /* rouge            */
+    --tpk-success:        #198754;   /* vert             */
+    --tpk-warning:        #ffc107;
+    --tpk-info:           #0dcaf0;
+    --tpk-light:          #f8f9fa;
+    --tpk-dark:           #212529;
+
+    /* Couleurs de texte et de fond                                    */
+    --tpk-bg:            #f5f7fa;
+    --tpk-bg-card:       #ffffff;
+    --tpk-text:          #212529;
+    --tpk-text-muted:    #6c757d;
+
+    --tpk-border:        #dee2e6;
+    --tpk-radius:        8px;
+    --tpk-shadow:        0 4px 14px rgba(0, 0, 0, .08);
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    background: var(--tpk-bg);
+    color: var(--tpk-text);
+    line-height: 1.5;
+}
+
+/* ---- Navigation ---------------------------------------------------------- */
+.tpk-navbar {
+    background: var(--tpk-primary);
+    color: #fff;
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: var(--tpk-shadow);
+}
+.tpk-navbar .brand {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #fff;
+    text-decoration: none;
+}
+.tpk-navbar .brand span { font-weight: 300; }
+.tpk-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: .25rem;
+    align-items: center;
+}
+.tpk-nav a {
+    color: rgba(255, 255, 255, .85);
+    text-decoration: none;
+    padding: .75rem 1rem;
+    display: block;
+    border-radius: var(--tpk-radius);
+}
+.tpk-nav a:hover, .tpk-nav a.active { background: rgba(255, 255, 255, .15); color: #fff; }
+.tpk-nav .user-chip {
+    color: #fff;
+    padding-left: 1rem;
+    font-weight: 600;
+}
+
+/* ---- Conteneur ----------------------------------------------------------- */
+.tpk-container {
+    max-width: 1100px;
+    margin: 1.5rem auto;
+    padding: 0 1rem;
+}
+
+/* ---- Cartes -------------------------------------------------------------- */
+.tpk-card {
+    background: var(--tpk-bg-card);
+    border: 1px solid var(--tpk-border);
+    border-radius: var(--tpk-radius);
+    box-shadow: var(--tpk-shadow);
+    overflow: hidden;
+}
+.tpk-card .card-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--tpk-border);
+    font-weight: 700;
+    background: var(--tpk-light);
+}
+.tpk-card .card-body { padding: 1.25rem; }
+
+/* ---- Tableaux ------------------------------------------------------------ */
+.tpk-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .95rem;
+}
+.tpk-table th, .tpk-table td {
+    padding: .75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--tpk-border);
+}
+.tpk-table thead th { background: var(--tpk-light); color: var(--tpk-text-muted); text-transform: uppercase; font-size: .8rem; }
+.tpk-table tr:hover td { background: #f1f5ff; }
+
+/* ---- Boutons ------------------------------------------------------------- */
+.tpk-btn {
+    display: inline-block;
+    padding: .5rem 1rem;
+    border: none;
+    border-radius: var(--tpk-radius);
+    cursor: pointer;
+    font-size: .9rem;
+    text-decoration: none;
+    color: #fff;
+    background: var(--tpk-primary);
+    transition: background .15s;
+}
+.tpk-btn:hover { background: var(--tpk-primary-dark); }
+.tpk-btn-secondary { background: var(--tpk-secondary); }
+.tpk-btn-danger    { background: var(--tpk-danger); }
+.tpk-btn-success   { background: var(--tpk-success); }
+.tpk-btn-outline {
+    background: transparent;
+    color: var(--tpk-primary);
+    border: 1px solid var(--tpk-primary);
+}
+.tpk-btn-outline:hover { background: var(--tpk-primary); color: #fff; }
+
+/* ---- Formulaires --------------------------------------------------------- */
+.tpk-form label { display: block; font-weight: 600; margin: 1rem 0 .35rem; }
+.tpk-input, .tpk-select {
+    width: 100%;
+    padding: .55rem .75rem;
+    border: 1px solid var(--tpk-border);
+    border-radius: var(--tpk-radius);
+    font-size: .95rem;
+    background: #fff;
+}
+.tpk-input:focus, .tpk-select:focus {
+    outline: none;
+    border-color: var(--tpk-primary);
+    box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .15);
+}
+.tpk-form-hint { color: var(--tpk-text-muted); font-size: .85rem; margin-top: .25rem; }
+
+/* ---- Alertes / messages flash ------------------------------------------- */
+.tpk-alert {
+    padding: .85rem 1rem;
+    border-radius: var(--tpk-radius);
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+}
+.tpk-alert-success { background: #d1e7dd; color: #0f5132; border-color: #badbcc; }
+.tpk-alert-error   { background: #f8d7da; color: #842029; border-color: #f5c2c7; }
+.tpk-alert-info    { background: #cff4fc; color: #055160; border-color: #b6effd; }
+
+/* ---- Badges / pastilles -------------------------------------------------- */
+.tpk-badge {
+    display: inline-block;
+    padding: .25rem .6rem;
+    border-radius: 999px;
+    font-size: .75rem;
+    font-weight: 600;
+}
+.tpk-badge-primary { background: var(--tpk-primary); color: #fff; }
+.tpk-badge-success { background: var(--tpk-success); color: #fff; }
+.tpk-badge-warning { background: var(--tpk-warning); color: var(--tpk-dark); }
+
+/* ---- Mise en page en deux colonnes --------------------------------------- */
+.tpk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1rem; }
+.tpk-stat { text-align: center; padding: 1.25rem; }
+.tpk-stat .value { font-size: 2rem; font-weight: 700; color: var(--tpk-primary); }
+.tpk-stat .label { color: var(--tpk-text-muted); }
+
+/* ---- Pied de page -------------------------------------------------------- */
+.tpk-footer {
+    text-align: center;
+    padding: 1.25rem;
+    color: var(--tpk-text-muted);
+    font-size: .85rem;
+    border-top: 1px solid var(--tpk-border);
+    margin-top: 2rem;
+}
+
+/* ---- Page de connexion --------------------------------------------------- */
+.login-wrap {
+    max-width: 420px;
+    margin: 4rem auto;
+}
+.login-wrap h1 { text-align: center; font-size: 1.4rem; }
+
+/* ---- Détails trajet ------------------------------------------------------ */
+.tpk-details dt { font-weight: 700; color: var(--tpk-text-muted); }
+.tpk-details dd { margin: 0 0 1rem; font-size: 1.05rem; }

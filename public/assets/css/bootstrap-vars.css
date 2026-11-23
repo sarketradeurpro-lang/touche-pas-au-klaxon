@@ -1,0 +1,11 @@
+:root {
+  --tpk-primary: #0d6efd;
+  --tpk-primary-dark: #0a58ca;
+  --tpk-secondary: #6c757d;
+  --tpk-danger: #dc3545;
+  --tpk-success: #198754;
+  --tpk-warning: #ffc107;
+  --tpk-info: #0dcaf0;
+  --tpk-light: #f8f9fa;
+  --tpk-dark: #212529;
+}

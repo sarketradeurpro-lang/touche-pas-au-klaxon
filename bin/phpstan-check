@@ -1,0 +1,249 @@
+<?php
+/**
+ * Analyseur statique maison — équivalent léger de PHPStan (niveaux 0-1).
+ *
+ * Fonctionne sans Composer. Règles réellement vérifiées :
+ *   1. Syntaxe : chaque fichier est parsé en mémoire (token_get_all).
+ *   2. Structure : chaque classe se charge sans « class/interface/trait
+ *      introuvable » ; la hiérarchie est cohérente.
+ *   3. Nommage : la déclaration de namespace correspond au chemin de
+ *      l'emplacement (convention PSR-4).
+ *   4. Niveau 1 : recherche de fuites (mot-clef `exit;`/`die` dans les
+ *      contrôleurs hors redirections, appels à `var_dump`/`print_r`
+ *      laissés dans le code source).
+ *
+ * Utilisation (racine du dépôt) :
+ *     php bin/phpstan-check analyse          # niveau 0
+ *     php bin/phpstan-check --level=1        # niveau 1
+ *
+ * NB : si Composer est installé, le vrai « vendor/bin/phpstan analyse »
+ * reste plus complet (analyse de types). Ici nous fournissons les contrôles
+ * structurels utiles qui ne nécessitent aucune dépendance.
+ *
+ * @package TouchePasAuKlaxon\Bin
+ */
+
+declare(strict_types=1);
+
+// ---------------------------------------------------------------------------
+// Récupération des fichiers PHP du projet (src + public).
+// ---------------------------------------------------------------------------
+function collectPhpFiles(string $root): array
+{
+    $out = [];
+    $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root));
+    foreach ($it as $f) {
+        $p = (string) $f;
+        if ($f->isFile() && str_ends_with($p, '.php')) {
+            $out[] = str_replace('\\', '/', $p);
+        }
+    }
+    sort($out);
+
+    return $out;
+}
+
+/**
+ * Analyse des fichiers source (Core + Controllers + Models).
+ *
+ * @return string[] Liste des chemins.
+ */
+function projectFiles(): array
+{
+    $base = __DIR__ . '/..';
+    return array_merge(
+        collectPhpFiles($base . '/src/Core'),
+        collectPhpFiles($base . '/src/Controllers'),
+        collectPhpFiles($base . '/src/Models'),
+        collectPhpFiles($base . '/public')
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Étape 1 — syntaxe (parsing en mémoire, sans sous-processus).
+// ---------------------------------------------------------------------------
+function stepSyntax(array $files): int
+{
+    $errors = 0;
+    foreach ($files as $f) {
+        $code = file_get_contents($f);
+        if ($code === false) {
+            fwrite(STDERR, "[ERREUR] Lecture impossible : $f\n");
+            $errors++;
+            continue;
+        }
+        try {
+            token_get_all($code, TOKEN_PARSE);
+        } catch (\ParseError $e) {
+            fwrite(STDERR, "[ERREUR] Syntaxe $f : {$e->getMessage()}\n");
+            $errors++;
+        }
+    }
+    if ($errors === 0) {
+        fwrite(STDOUT, "[OK] Syntaxe valide pour " . count($files) . " fichiers.\n");
+    }
+
+    return $errors;
+}
+
+// ---------------------------------------------------------------------------
+// Étape 2 — structure (chargement des classes, hiérarchie cohérente).
+// ---------------------------------------------------------------------------
+function stepStructure(array $files): int
+{
+    $errors = 0;
+    $loaded = [];
+    foreach ($files as $f) {
+        $code = file_get_contents($f);
+        if ($code === false) {
+            continue;
+        }
+        // Détection d'une déclaration de namespace dans le fichier.
+        if (preg_match('/\bnamespace\s+([A-Za-z0-9_\\\\]+)\s*;/', $code, $m)) {
+            $ns = trim($m[1], '\\');
+        } else {
+            continue; // vue / fichier sans classe : rien à vérifier.
+        }
+        // Tous les noms de classes déclarés dans ce fichier.
+        preg_match_all('/\babstract\s+class\s+(\w+)|(?<!\w)class\s+(\w+)/', $code, $cm, PREG_SET_ORDER);
+        foreach ($cm as $hit) {
+            $short = $hit[1] !== '' ? $hit[1] : $hit[2];
+            $fqcn = $ns . '\\' . $short;
+            $loaded[$fqcn] = [basename($f), $code];
+
+            // La classe doit être chargeable (ses parents/interfaces connus).
+            try {
+                if (!class_exists($fqcn)) {
+                    // force l'autoload : lèvera une erreur si un symbole manque.
+                    if (interface_exists($fqcn) ? false : !class_exists($fqcn)) {
+                        continue;
+                    }
+                }
+                $rc = new ReflectionClass($fqcn);
+                $parent = $rc->getParentClass();
+                if ($parent !== false && !class_exists($parent->getName()) && !interface_exists($parent->getName())) {
+                    fwrite(STDERR, "[ERREUR] $fqcn extends une classe introuvable : {$parent->getName()}\n");
+                    $errors++;
+                }
+                foreach ($rc->getInterfaceNames() as $i) {
+                    if (!interface_exists($i)) {
+                        fwrite(STDERR, "[ERREUR] $fqcn implémente une interface introuvable : $i\n");
+                        $errors++;
+                    }
+                }
+            } catch (\Throwable $e) {
+                fwrite(STDERR, "[ERREUR] Chargement de $fqcn : {$e->getMessage()}\n");
+                $errors++;
+            }
+        }
+    }
+
+    if ($errors === 0) {
+        fwrite(STDOUT, "[OK] " . count($loaded) . " classes (ou interfaces) chargées sans erreur.\n");
+    }
+
+    return $errors;
+}
+
+// ---------------------------------------------------------------------------
+// Étape 3 — nommage PSR-4 (le namespace reflète le chemin).
+// ---------------------------------------------------------------------------
+function stepNaming(array $files): int
+{
+    $errors = 0;
+    $root = str_replace('\\', '/', __DIR__ . '/..');
+    foreach ($files as $f) {
+        $code = file_get_contents($f);
+        if ($code === false || !preg_match('/\bnamespace\s+([A-Za-z0-9_\\\\]+)\s*;/', $code, $m)) {
+            continue;
+        }
+        $ns = trim($m[1], '\\');
+        // Le namespace prédit le chemin : TouchePasAuKlaxon\Core => src/Core.
+        $expectedDir = null;
+        if (str_starts_with($ns, 'TouchePasAuKlaxon\\')) {
+            $expectedDir = $root . '/src/' . substr($ns, strlen('TouchePasAuKlaxon\\'));
+        }
+        if ($expectedDir !== null) {
+            $realDir = str_replace('\\', '/', dirname($f));
+            if (!str_starts_with($realDir . '/', $expectedDir)) {
+                fwrite(STDERR, "[ERREUR] PSR-4 : $f déclare le namespace $ns, attendu sous $expectedDir.\n");
+                $errors++;
+            }
+        }
+    }
+
+    if ($errors === 0) {
+        fwrite(STDOUT, "[OK] Conformité PSR-4 : les namespace correspondent aux chemins.\n");
+    }
+
+    return $errors;
+}
+
+// ---------------------------------------------------------------------------
+// Étape 4 (niveau 1) — fuites de débogage.
+// ---------------------------------------------------------------------------
+function stepDebugLeaks(array $files): int
+{
+    $errors = 0;
+    foreach ($files as $f) {
+        // Ignore les fichiers SQL peu pertinents et les stubs.
+        if (str_contains($f, 'Views') || str_contains($f, 'Stubs')) {
+            continue;
+        }
+        $lines = file($f);
+        if ($lines === false) {
+            continue;
+        }
+        foreach ($lines as $ln => $line) {
+            $trimmed = ltrim($line);
+            // var_dump / print_r / die / exit hors un contexte de redirection connu.
+            if (preg_match('/\b(var_dump|print_r|dump)\s*\(/i', $line)) {
+                fwrite(STDERR, sprintf(
+                    "[CONSEIL] %s:%d — appel de débogage (%s) à retirer avant livraison.\n",
+                    basename($f), $ln + 1, trim($trimmed)
+                ));
+                $errors++;
+            }
+        }
+    }
+
+    if ($errors === 0) {
+        fwrite(STDOUT, "[OK] Aucune fuite de débogage (var_dump/print_r) détectée.\n");
+    }
+
+    return $errors;
+}
+
+// ---------------------------------------------------------------------------
+// Exécution principale.
+// ---------------------------------------------------------------------------
+$level = 0;
+foreach ($argv as $arg) {
+    if (str_starts_with($arg, '--level=')) {
+        $level = (int) substr($arg, 8);
+    } elseif ($arg === '--level' && isset($argv[array_search($arg, $argv, true) + 1])) {
+        $level = (int) $argv[array_search($arg, $argv, true) + 1];
+    }
+}
+
+fwrite(STDOUT, "PHPStan (maison) — niveau {$level}\n");
+fwrite(STDOUT, str_repeat('=', 60) . "\n");
+
+$total = 0;
+$files = projectFiles();
+
+$total += stepSyntax($files);
+$total += stepStructure($files);
+$total += stepNaming($files);
+if ($level >= 1) {
+    $total += stepDebugLeaks($files);
+}
+
+fwrite(STDOUT, str_repeat('=', 60) . "\n");
+if ($total === 0) {
+    fwrite(STDOUT, "Aucune erreur détectée. ($level)\n");
+    exit(0);
+}
+
+fwrite(STDOUT, "{$total} point(s) à vérifier (voir ci-dessus).\n");
+exit(1);

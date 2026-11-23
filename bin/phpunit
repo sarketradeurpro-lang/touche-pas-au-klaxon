@@ -1,0 +1,115 @@
+<?php
+/**
+ * Runner de tests maison — équivalent léger de « vendor/bin/phpunit ».
+ *
+ *   - Utilise le vrai PHPUnit s'il est installé (vendor/autoload.php).
+ *   - Sinon, charge le stub compatible PHPUnit\Framework\TestCase.
+ *   - Parcourt les fichiers tests/*Test.php, exécute chaque méthode test*()
+ *     et affiche un récapitulatif (format semblable à phpunit).
+ *
+ * Utilisation (à la racine du dépôt) :
+ *     php bin/phpunit
+ *
+ * @package TouchePasAuKlaxon\Bin
+ */
+
+declare(strict_types=1);
+
+// --- Autoload des classes du projet et du stub de test ---------------------
+require __DIR__ . '/../autoload.php';
+
+// Charge le stub PHPUnit si le vrai framework n'est pas disponible.
+if (!class_exists(\PHPUnit\Framework\TestCase::class)) {
+    require __DIR__ . '/../tests/Stubs/PHPUnitFramework.php';
+}
+
+// --- Collecte des fichiers de test ----------------------------------------
+$testsDir = __DIR__ . '/../tests';
+$runGroup = $argv[1] ?? null;
+
+/** @var array<int, string> $files */
+$files = [];
+$iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($testsDir));
+foreach ($iterator as $file) {
+    $p = (string) $file;
+    if ($file->isFile() && str_ends_with($p, 'Test.php') && !str_contains($p, 'Stubs')) {
+        $files[] = $p;
+    }
+}
+sort($files);
+
+// --- Déroulement -----------------------------------------------------------
+$passed = 0;
+$failed = 0;
+$totalAssertions = 0;
+$errors = [];
+
+foreach ($files as $path) {
+    require_once $path;
+    // Nom de classe : dossier\tests\...\BasenameTest
+    $rel = substr($path, strlen($testsDir) + 1, -4);            // Models\TrajetTest
+    $class = 'TouchePasAuKlaxon\\Tests\\' . str_replace(['/', '\\'], '\\', $rel);
+
+    // Filtre éventuel par nom de classe (argument optionnel).
+    if ($runGroup !== null && stripos($class, $runGroup) === false) {
+        continue;
+    }
+
+    if (!class_exists($class)) {
+        $errors[] = "Classe introuvable : $class";
+        continue;
+    }
+
+    $reflection = new ReflectionClass($class);
+    foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+        if (!str_starts_with($method->getName(), 'test')) {
+            continue;
+        }
+        if ($method->getDeclaringClass()->getName() !== $class) {
+            continue;
+        }
+
+        // Réinitialise l'instance par test, comme PHPUnit.
+        $instance = new $class();
+        if (method_exists($instance, 'runSetUp')) {
+            $instance->runSetUp();
+        }
+
+        try {
+            $method->invoke($instance);
+            $fails = method_exists($instance, 'getFailures') ? $instance->getFailures() : [];
+        } catch (\Throwable $ex) {
+            $fails = ['Exception : ' . $ex->getMessage()];
+        }
+
+        $asserts = method_exists($instance, 'getAssertionCount') ? $instance->getAssertionCount() : 0;
+        $totalAssertions += $asserts;
+
+        if ($fails === []) {
+            $passed++;
+            fwrite(STDOUT, "PASS  " . $class . '::' . $method->getName() . "\n");
+        } else {
+            $failed++;
+            fwrite(STDOUT, "FAIL  " . $class . '::' . $method->getName() . "\n");
+            foreach ($fails as $f) {
+                fwrite(STDOUT, "      - $f\n");
+            }
+        }
+
+        if (method_exists($instance, 'runTearDown')) {
+            $instance->runTearDown();
+        }
+    }
+}
+
+// --- Récapitulatif ---------------------------------------------------------
+fwrite(STDOUT, "----------------------------------------\n");
+fwrite(STDOUT, "Tests: {$passed} réussis, {$failed} échoués  (assertions: {$totalAssertions})\n");
+if ($errors !== []) {
+    fwrite(STDOUT, "Erreurs de chargement :\n");
+    foreach ($errors as $e) {
+        fwrite(STDOUT, "  - $e\n");
+    }
+}
+
+exit($failed > 0 || $errors !== [] ? 1 : 0);

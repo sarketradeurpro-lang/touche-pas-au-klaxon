@@ -1,0 +1,36 @@
+// ============================================================================
+// Déclinaison Sass des variables CSS de Bootstrap.
+// ----------------------------------------------------------------------------
+// Ce fichier reprend les noms de variables de Bootstrap ($primary, $secondary…)
+// afin de décliner la palette de l'entreprise « Touche pas au klaxon ».
+// Tout autre site d'une autre direction pourra réutiliser la feuille app.css
+// en redéfinissant ces variables — c'est exactement le principe de
+// personnalisation par variables CSS proposé par Bootstrap.
+//
+// Compilation (nécessite un compilateur Sass : dart-sass ou scssphp) :
+//     sass public/assets/sass:public/assets/css
+// ============================================================================
+
+// Palette de la marque.
+$primary:   #0d6efd !default;
+$primary-dark: #0a58ca !default;
+$secondary: #6c757d !default;
+$danger:    #dc3545 !default;
+$success:   #198754 !default;
+$warning:   #ffc107 !default;
+$info:      #0dcaf0 !default;
+$light:     #f8f9fa !default;
+$dark:      #212529 !default;
+
+// Expose les variables en propriétés CSS custom (consommées par app.css).
+:root {
+    --tpk-primary:      #{$primary};
+    --tpk-primary-dark: #{$primary-dark};
+    --tpk-secondary:    #{$secondary};
+    --tpk-danger:       #{$danger};
+    --tpk-success:      #{$success};
+    --tpk-warning:      #{$warning};
+    --tpk-info:         #{$info};
+    --tpk-light:        #{$light};
+    --tpk-dark:         #{$dark};
+}

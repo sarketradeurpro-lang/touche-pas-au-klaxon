@@ -1,0 +1,19 @@
+# Dépendances du développeur (node_modules si un compilateur Sass local est utilisé)
+node_modules/
+vendor/
+__pycache__/
+
+# Base de données locale générée
+.db/
+
+# Données d'exécution et temporaires
+var/
+.tmp/
+.tools/
+*.log
+
+# Sauvegardes et fichiers temporaires
+_*.txt
+
+# Artefact de génération — rapport à régénérer avec `python tools/makepdf.py`
+Nom_Prenom_Titre_devoir.pdf

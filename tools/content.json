@@ -1,0 +1,19 @@
+{
+  "meta": [
+    ["Étudiant", "Prénom Nom (à compléter)"],
+    ["Titre du devoir", "Touche pas au klaxon — application MVC de covoiturage"],
+    ["URL dépôt", "(URL GitHub non fournie)"]
+  ],
+  "presentation": "« Touche pas au klaxon » est une application web MVC écrite en PHP (8.1+) avec MariaDB, qui permet à des employés d'une entreprise de proposer ou de réserver des trajets en covoiturage entre ses différentes agences. Les employés sont importés de manière lecture seule depuis un fichier (users.txt), les agences et trajets sont gérés par l'application, et un rôle distinct Administrateur (ROLE_ADMIN) permet de gérer les agences.",
+  "fonctionnalites": [
+    "Authentification par e-mail / mot de passe (mots de passe hachés avec password_hash / vérifiés avec password_verify).",
+    "Deux rôles distincts : Employé (ROLE_USER) et Administrateur (ROLE_ADMIN).",
+    "Liste des trajets à venir (date de départ future, places disponibles > 0) avec agences de départ/d'arrivée et conducteur.",
+    "Création / modification / suppression d'un trajet par son auteur ou par un administrateur.",
+    "Validation métier : agence d'arrivée différente de l'agence de départ, et date de départ strictement postérieure à la date de départ du trajet.",
+    "Gestion des agences (CRUD) réservée aux administrateurs.",
+    "Tableau de bord admin : compteurs (employés, agences, trajets) et consultation des employés.",
+    "Employés en lecture seule depuis le fichier users.txt (aucune création/modification/suppression côté application).",
+    "Messages flash (succès / erreur) et sessions, protection de base contre les failles XSS (htmlspecialchars)."
+  ]
+}
