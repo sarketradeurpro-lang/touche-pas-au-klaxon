@@ -10,6 +10,7 @@
 
 <div class="tpk-card">
     <div class="card-body">
+        <div class="tpk-table-wrap table-responsive">
         <table class="tpk-table">
             <thead>
                 <tr>
@@ -36,5 +37,6 @@
                 <?php endforeach; ?>
             </tbody>
         </table>
+        </div>
     </div>
 </div>

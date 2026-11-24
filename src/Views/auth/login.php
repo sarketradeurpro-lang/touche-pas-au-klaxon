@@ -11,6 +11,7 @@ $email = $email ?? '';
     <div class="card-header">Connexion</div>
     <div class="card-body">
         <form method="post" action="/login">
+            <input type="hidden" name="_csrf" value="<?= htmlspecialchars((string) ($csrfToken ?? '')) ?>">
             <label>Adresse email</label>
             <input class="tpk-input" type="email" name="email" value="<?= htmlspecialchars($email) ?>" required autofocus>
 

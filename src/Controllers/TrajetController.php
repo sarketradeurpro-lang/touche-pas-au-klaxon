@@ -20,6 +20,7 @@ namespace TouchePasAuKlaxon\Controllers;
 use TouchePasAuKlaxon\Core\Controller;
 use TouchePasAuKlaxon\Core\Request;
 use TouchePasAuKlaxon\Core\Auth;
+use TouchePasAuKlaxon\Core\Csrf;
 use TouchePasAuKlaxon\Core\Flash;
 use TouchePasAuKlaxon\Models\Agence;
 use TouchePasAuKlaxon\Models\Trajet;
@@ -37,6 +38,10 @@ final class TrajetController extends Controller
      */
     public function show(Request $request): void
     {
+        // Les coordonnées du proposeur ne doivent être visibles qu'après
+        // connexion (cahier des charges §3.5).
+        Auth::requireLogin();
+
         $id = (int) ($request->routeParam('id') ?? 0);
         $trajet = (new Trajet())->find($id);
 
@@ -49,12 +54,21 @@ final class TrajetController extends Controller
         $agenceArrivee = (new Agence())->find($trajet->getAgenceArriveeId());
         $auteur = (new Employe())->find($trajet->getAuteurId());
 
-        $this->render('trajets/show', [
+        $data = [
             'trajet'        => $trajet,
             'agenceDepart'  => $agenceDepart,
             'agenceArrivee' => $agenceArrivee,
             'auteur'        => $auteur,
-        ]);
+        ];
+
+        // Requête AJAX de la modale : fragment seul, sans header/footer.
+        if ((string) ($request->get('partial') ?? '') === '1') {
+            $this->renderPartial('trajets/show', $data);
+
+            return;
+        }
+
+        $this->render('trajets/show', $data);
     }
 
     /**
@@ -80,6 +94,11 @@ final class TrajetController extends Controller
     public function store(Request $request): void
     {
         Auth::requireLogin();
+
+        if (!Csrf::validate($request->post('_csrf'))) {
+            Flash::error('Jeton CSRF invalide ou expiré. Veuillez réessayer.');
+            $this->redirect('/trajets/creer');
+        }
 
         $data = $this->validate($request);
         $errors = $data['errors'];
@@ -136,6 +155,11 @@ final class TrajetController extends Controller
         $id = (int) ($request->routeParam('id') ?? 0);
         $trajet = (new Trajet())->find($id);
 
+        if (!Csrf::validate($request->post('_csrf'))) {
+            Flash::error('Jeton CSRF invalide ou expiré. Veuillez réessayer.');
+            $this->redirect($trajet !== null ? '/trajets/' . $id . '/modifier' : '/');
+        }
+
         if ($trajet === null) {
             Flash::error('Trajet introuvable.');
             $this->redirect('/');
@@ -171,6 +195,12 @@ final class TrajetController extends Controller
     public function destroy(Request $request): void
     {
         Auth::requireLogin();
+
+        if (!Csrf::validate($request->post('_csrf'))) {
+            Flash::error('Jeton CSRF invalide ou expiré. La suppression a été annulée.');
+            $this->redirect('/');
+        }
+
         $id = (int) ($request->routeParam('id') ?? 0);
         $trajet = (new Trajet())->find($id);
 

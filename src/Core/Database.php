@@ -24,29 +24,37 @@ final class Database
     /** Instance PDO unique (singleton). */
     private static ?PDO $instance = null;
 
-    /** Paramètres de connexion. */
-    private array $config;
+    /**
+     * Configuration différée, utilisée au premier appel à pdo().
+     *
+     * @var array<string, mixed>|null
+     */
+    private static ?array $pendingConfig = null;
 
     /**
-     * Constructeur privé (pattern singleton).
+     * Enregistre la configuration sans ouvrir de connexion (connexion paresseuse).
      *
-     * @param array $config Configuration PDO (dsn, user, password, options).
+     * Permet notamment de construire le routeur et de tester les routes sans
+     * base de données disponible.
+     *
+     * @param array<string, mixed> $config Configuration PDO (dsn, user, password, options).
      */
-    private function __construct(array $config)
+    public static function configure(array $config): void
     {
-        $this->config = $config;
+        self::$pendingConfig = $config;
     }
 
     /**
      * Récupère l'instance PDO, en la créant si besoin.
      *
-     * @param array|null $config Configuration PDO optionnelle (utilisée une seule fois).
+     * @param array<string, mixed>|null $config Configuration PDO optionnelle (utilisée une seule fois).
      *
      * @return PDO L'objet PDO partagé.
      */
     public static function pdo(?array $config = null): PDO
     {
         if (self::$instance === null) {
+            $config ??= self::$pendingConfig;
             if ($config === null) {
                 throw new \LogicException('La configuration de la base de données est requise au premier appel.');
             }
@@ -59,7 +67,7 @@ final class Database
     /**
      * Établit effectivement la connexion PDO.
      *
-     * @param array $config Configuration (dsn, user, password, options).
+     * @param array<string, mixed> $config Configuration (dsn, user, password, options).
      *
      * @return PDO L'objet PDO connecté.
      *

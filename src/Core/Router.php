@@ -30,21 +30,26 @@ final class Router
      */
     private array $routes = [];
 
-    /** Configuration globale de l'application. */
+    /**
+     * Configuration globale de l'application.
+     *
+     * @var array<string, mixed>
+     */
     private array $config;
 
     /**
      * Constructeur.
      *
-     * @param array $config Configuration globale (base de données, chemins...).
+     * @param array<string, mixed> $config Configuration globale (base de données, chemins...).
      */
     public function __construct(array $config = [])
     {
         $this->config = $config;
 
-        // Pré-initialise la connexion PDO partagée (utilisée par les modèles).
+        // Enregistre la configuration PDO sans ouvrir de connexion : les modèles
+        // se connectent à la première requête (connexion paresseuse).
         if (isset($config['db'])) {
-            Database::pdo($config['db']);
+            Database::configure($config['db']);
         }
     }
 

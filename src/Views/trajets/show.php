@@ -52,6 +52,7 @@ $canManage = ($currentUser ?? null) !== null
                     <a class="tpk-btn" href="/trajets/<?= $trajet->getId() ?>/modifier">Modifier</a>
                     <form method="post" action="/trajets/<?= $trajet->getId() ?>/supprimer"
                           onsubmit="return confirm('Supprimer ce trajet ?');">
+                        <input type="hidden" name="_csrf" value="<?= htmlspecialchars((string) ($csrfToken ?? '')) ?>">
                         <button class="tpk-btn tpk-btn-danger" type="submit">Supprimer</button>
                     </form>
                 </div>

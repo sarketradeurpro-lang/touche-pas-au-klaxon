@@ -35,15 +35,47 @@ final class Auth
      */
     public static function login(int $employeId): void
     {
+        // Nouvel identifiant de session (protection contre la fixation de
+        // session), régénéré avant d'enregistrer l'utilisateur authentifié.
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_regenerate_id(true);
+        }
+
         $_SESSION[self::SESSION_USER_ID] = $employeId;
     }
 
     /**
-     * Déconnecte l'utilisateur courant.
+     * Déconnecte l'utilisateur courant et détruit sa session.
      */
     public static function logout(): void
     {
         unset($_SESSION[self::SESSION_USER_ID]);
+
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            return;
+        }
+
+        // Vide les données puis invalide la session et son cookie.
+        $_SESSION = [];
+
+        if ((bool) ini_get('session.use_cookies')) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', [
+                'expires'  => time() - 42000,
+                'path'     => $params['path'],
+                'domain'   => $params['domain'],
+                'secure'   => $params['secure'],
+                'httponly' => $params['httponly'],
+                'samesite' => $params['samesite'],
+            ]);
+        }
+
+        session_destroy();
+
+        // Nouvelle session vierge : permet d'afficher le message flash après
+        // la redirection, sans conserver d'information d'authentification.
+        unset($_COOKIE[session_name()]);
+        session_start();
     }
 
     /**

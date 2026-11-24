@@ -13,6 +13,7 @@
             <span class="tpk-form-hint"><?= count($agences) ?> agence(s) référencée(s).</span>
             <a class="tpk-btn" href="/admin/agences/creer">Ajouter une agence</a>
         </div>
+        <div class="tpk-table-wrap table-responsive">
         <table class="tpk-table">
             <thead>
                 <tr>
@@ -31,6 +32,7 @@
                             <form method="post" action="/admin/agences/<?= $agence->getId() ?>/supprimer"
                                   style="display:inline;"
                                   onsubmit="return confirm('Supprimer l\'agence <?= htmlspecialchars(addslashes($agence->getVille())) ?> ?');">
+                                <input type="hidden" name="_csrf" value="<?= htmlspecialchars((string) ($csrfToken ?? '')) ?>">
                                 <button class="tpk-btn tpk-btn-danger" type="submit">Supprimer</button>
                             </form>
                         </td>
@@ -38,5 +40,6 @@
                 <?php endforeach; ?>
             </tbody>
         </table>
+        </div>
     </div>
 </div>

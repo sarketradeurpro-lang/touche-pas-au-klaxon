@@ -13,6 +13,7 @@ $action = $isEdit ? '/admin/agences/' . (int) $id . '/modifier' : '/admin/agence
     <div class="card-header"><?= $isEdit ? 'Modifier l\'agence' : 'Ajouter une agence' ?></div>
     <div class="card-body">
         <form method="post" action="<?= htmlspecialchars($action) ?>">
+            <input type="hidden" name="_csrf" value="<?= htmlspecialchars((string) ($csrfToken ?? '')) ?>">
             <label>Ville</label>
             <input class="tpk-input" type="text" name="ville" value="<?= htmlspecialchars($ville) ?>" required>
             <div style="margin-top:1.25rem; display:flex; gap:.5rem;">

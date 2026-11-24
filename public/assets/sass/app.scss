@@ -1,0 +1,343 @@
+// ============================================================================
+// Feuille de style principale « Touche pas au klaxon » (source Sass).
+// ----------------------------------------------------------------------------
+// Compilation :
+//     sass public/assets/sass/app.scss public/assets/css/app.css
+//
+// Aucune couleur littérale ici : toutes les teintes proviennent du fichier
+// _variables.scss (exigence de centralisation du cahier des charges).
+// ============================================================================
+
+@import "variables";
+
+// ---------------------------------------------------------------------------
+// Base
+// ---------------------------------------------------------------------------
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    background: $bg;
+    color: $text;
+    line-height: 1.5;
+}
+
+// ---------------------------------------------------------------------------
+// Navigation (bandeau sombre de la charte)
+// ---------------------------------------------------------------------------
+.tpk-navbar {
+    background: $secondary;
+    color: #FFFFFF;
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: $shadow;
+
+    .brand {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #FFFFFF;
+        text-decoration: none;
+
+        span { font-weight: 300; }
+    }
+}
+
+.tpk-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: .25rem;
+    align-items: center;
+}
+
+.tpk-nav a {
+    color: rgba(255, 255, 255, .85);
+    text-decoration: none;
+    padding: .75rem 1rem;
+    display: block;
+    border-radius: $radius;
+
+    &:hover, &.active {
+        background: rgba(255, 255, 255, .15);
+        color: #FFFFFF;
+    }
+}
+
+.tpk-nav .user-chip {
+    color: #FFFFFF;
+    padding-left: 1rem;
+    font-weight: 600;
+}
+
+// ---------------------------------------------------------------------------
+// Conteneur
+// ---------------------------------------------------------------------------
+.tpk-container {
+    max-width: 1100px;
+    margin: 1.5rem auto;
+    padding: 0 1rem;
+}
+
+// ---------------------------------------------------------------------------
+// Cartes
+// ---------------------------------------------------------------------------
+.tpk-card {
+    background: $bg-card;
+    border: 1px solid $border;
+    border-radius: $radius;
+    box-shadow: $shadow;
+    overflow: hidden;
+
+    .card-header {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid $border;
+        font-weight: 700;
+        background: $light;
+        color: $primary-dark;
+    }
+
+    .card-body { padding: 1.25rem; }
+}
+
+// ---------------------------------------------------------------------------
+// Tableaux
+// ---------------------------------------------------------------------------
+.tpk-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .95rem;
+
+    th, td {
+        padding: .75rem;
+        text-align: left;
+        border-bottom: 1px solid $border;
+    }
+
+    thead th {
+        background: $light;
+        color: $primary-dark;
+        text-transform: uppercase;
+        font-size: .8rem;
+    }
+
+    tr:hover td { background: mix($primary, #FFFFFF, 6%); }
+}
+
+// ---------------------------------------------------------------------------
+// Boutons
+// ---------------------------------------------------------------------------
+.tpk-btn {
+    display: inline-block;
+    padding: .5rem 1rem;
+    border: none;
+    border-radius: $radius;
+    cursor: pointer;
+    font-size: .9rem;
+    text-decoration: none;
+    color: #FFFFFF;
+    background: $primary;
+    transition: background .15s;
+
+    &:hover { background: $primary-dark; }
+}
+
+.tpk-btn-secondary { background: $secondary; }
+.tpk-btn-danger    { background: $danger; }
+.tpk-btn-success   { background: $success; }
+
+.tpk-btn-outline {
+    background: transparent;
+    color: $primary;
+    border: 1px solid $primary;
+
+    &:hover { background: $primary; color: #FFFFFF; }
+}
+
+// ---------------------------------------------------------------------------
+// Formulaires
+// ---------------------------------------------------------------------------
+.tpk-form label { display: block; font-weight: 600; margin: 1rem 0 .35rem; }
+
+.tpk-input, .tpk-select {
+    width: 100%;
+    padding: .55rem .75rem;
+    border: 1px solid $border;
+    border-radius: $radius;
+    font-size: .95rem;
+    background: #FFFFFF;
+    color: $text;
+
+    &:focus {
+        outline: none;
+        border-color: $primary;
+        box-shadow: 0 0 0 .2rem rgba($primary, .18);
+    }
+
+    &[readonly], &:disabled {
+        background: $light;
+        color: $text-muted;
+    }
+}
+
+.tpk-form-hint { color: $text-muted; font-size: .85rem; margin-top: .25rem; }
+
+// Bloc « informations de l'utilisateur » (pré-rempli, non modifiable — §3.6)
+.tpk-userbox {
+    background: $light;
+    border: 1px solid $border;
+    border-radius: $radius;
+    padding: .85rem 1rem;
+    margin-bottom: 1rem;
+
+    .tpk-userbox-title {
+        font-weight: 700;
+        color: $primary-dark;
+        margin-bottom: .5rem;
+    }
+
+    dl { margin: 0; }
+    dt { font-weight: 600; color: $text-muted; font-size: .8rem; }
+    dd { margin: 0 0 .4rem; }
+}
+
+// ---------------------------------------------------------------------------
+// Alertes / messages flash
+// ---------------------------------------------------------------------------
+.tpk-alert {
+    padding: .85rem 1rem;
+    border-radius: $radius;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+}
+
+.tpk-alert-success { background: $success-bg; color: $success-text; border-color: $success-brd; }
+.tpk-alert-error   { background: $danger-bg;  color: $danger-text;  border-color: $danger-brd; }
+.tpk-alert-info    { background: $info-bg;    color: $info-text;    border-color: $info-brd; }
+
+// ---------------------------------------------------------------------------
+// Badges / pastilles
+// ---------------------------------------------------------------------------
+.tpk-badge {
+    display: inline-block;
+    padding: .25rem .6rem;
+    border-radius: 999px;
+    font-size: .75rem;
+    font-weight: 600;
+}
+
+.tpk-badge-primary { background: $primary; color: #FFFFFF; }
+.tpk-badge-success { background: $success; color: #FFFFFF; }
+.tpk-badge-warning { background: $warning; color: $dark; }
+
+// ---------------------------------------------------------------------------
+// Mise en page
+// ---------------------------------------------------------------------------
+.tpk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1rem; }
+
+.tpk-stat {
+    text-align: center;
+    padding: 1.25rem;
+
+    .value { font-size: 2rem; font-weight: 700; color: $primary; }
+    .label { color: $text-muted; }
+}
+
+// ---------------------------------------------------------------------------
+// Pied de page
+// ---------------------------------------------------------------------------
+.tpk-footer {
+    text-align: center;
+    padding: 1.25rem;
+    color: $text-muted;
+    font-size: .85rem;
+    border-top: 1px solid $border;
+    margin-top: 2rem;
+}
+
+// ---------------------------------------------------------------------------
+// Page de connexion
+// ---------------------------------------------------------------------------
+.login-wrap {
+    max-width: 420px;
+    margin: 4rem auto;
+
+    h1 { text-align: center; font-size: 1.4rem; }
+}
+
+// ---------------------------------------------------------------------------
+// Détails d'un trajet
+// ---------------------------------------------------------------------------
+.tpk-details {
+    dt { font-weight: 700; color: $text-muted; }
+    dd { margin: 0 0 1rem; font-size: 1.05rem; }
+}
+
+// ---------------------------------------------------------------------------
+// Fenêtre modale de détail (fragment chargé en AJAX depuis l'accueil)
+// ---------------------------------------------------------------------------
+.tpk-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(0, 0, 0, .45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.tpk-modal-dialog {
+    position: relative;
+    width: 100%;
+    max-width: 640px;
+    max-height: 90vh;
+    overflow: auto;
+    background: $bg-card;
+    border-radius: $radius;
+    box-shadow: $shadow;
+    padding: 1.25rem;
+}
+
+.tpk-modal-close {
+    position: absolute;
+    top: .25rem;
+    right: .5rem;
+    border: none;
+    background: transparent;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    color: $text-muted;
+
+    &:hover { color: $text; }
+}
+
+// ---------------------------------------------------------------------------
+// Adaptations responsive (mobile, tablette, ordinateur)
+// ---------------------------------------------------------------------------
+.tpk-table-wrap { overflow-x: auto; }
+
+@media (max-width: 768px) {
+    .tpk-navbar {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: .5rem 1rem;
+    }
+
+    .tpk-nav ul { flex-wrap: wrap; }
+    .tpk-nav a { padding: .5rem .6rem; }
+    .tpk-nav .user-chip { padding-left: .6rem; }
+
+    .tpk-container { margin: 1rem auto; }
+    .tpk-grid { grid-template-columns: 1fr; }
+    .tpk-table { font-size: .85rem; }
+    .tpk-modal-dialog { max-height: 95vh; }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .tpk-container { padding: 0 .75rem; }
+}

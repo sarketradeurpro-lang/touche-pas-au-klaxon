@@ -69,11 +69,16 @@ final class Trajet
             JOIN agences ad ON ad.id = t.agence_depart_id
             JOIN agences aa ON aa.id = t.agence_arrivee_id
             JOIN employes e ON e.id = t.auteur_id
-            WHERE t.date_depart > NOW()
+            WHERE t.date_depart > :now
               AND t.nb_places_disponibles > 0
             ORDER BY t.date_depart ASC';
 
-        return Database::pdo()->query($sql)->fetchAll();
+        // Paramètre lié (et non NOW()) pour rester compatible MySQL et SQLite,
+        // ce qui permet d'isoler les tests sur une base en mémoire.
+        $stmt = Database::pdo()->prepare($sql);
+        $stmt->execute([':now' => (new DateTimeImmutable())->format('Y-m-d H:i:s')]);
+
+        return $stmt->fetchAll();
     }
 
     /**

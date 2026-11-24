@@ -1,36 +1,89 @@
 // ============================================================================
-// Déclinaison Sass des variables CSS de Bootstrap.
+// Palette de l'application « Touche pas au klaxon ».
 // ----------------------------------------------------------------------------
-// Ce fichier reprend les noms de variables de Bootstrap ($primary, $secondary…)
-// afin de décliner la palette de l'entreprise « Touche pas au klaxon ».
-// Tout autre site d'une autre direction pourra réutiliser la feuille app.css
-// en redéfinissant ces variables — c'est exactement le principe de
-// personnalisation par variables CSS proposé par Bootstrap.
+// FICHIER UNIQUE de centralisation des couleurs (exigence du cahier des
+// charges). Les sites qui seront réalisés ultérieurement (intranet, comité
+// d'entreprise…) pourront réutiliser la même feuille de style en redéfinissant
+// uniquement les variables ci-dessous : c'est le principe de personnalisation
+// proposé par Bootstrap, décliné ici en Sass.
+//
+// Les noms de variables reprennent volontairement ceux de Bootstrap
+// ($primary, $secondary, $success, $danger…) afin de rester compatible avec
+// une compilation Bootstrap ultérieure.
 //
 // Compilation (nécessite un compilateur Sass : dart-sass ou scssphp) :
-//     sass public/assets/sass:public/assets/css
+//     sass --no-source-map public/assets/sass/app.scss public/assets/css/app.css
 // ============================================================================
 
-// Palette de la marque.
-$primary:   #0d6efd !default;
-$primary-dark: #0a58ca !default;
-$secondary: #6c757d !default;
-$danger:    #dc3545 !default;
-$success:   #198754 !default;
-$warning:   #ffc107 !default;
-$info:      #0dcaf0 !default;
-$light:     #f8f9fa !default;
-$dark:      #212529 !default;
+@use "sass:color";
 
-// Expose les variables en propriétés CSS custom (consommées par app.css).
+// ---------------------------------------------------------------------------
+// 1. Palette imposée (6 couleurs fournies dans le cahier des charges)
+// ---------------------------------------------------------------------------
+$primary:       #0074c7 !default;   // bleu principal
+$primary-dark:  #00497c !default;   // bleu foncé (survol, contrastes)
+$secondary:     #384050 !default;   // texte (gris foncé)
+$success:       #82b864 !default;   // vert
+$danger:        #cd2c2e !default;   // rouge
+$light:         #f1f8fc !default;   // fond très clair
+
+// ---------------------------------------------------------------------------
+// 2. Alias sémantiques Bootstrap (aucune teinte supplémentaire inventée)
+// ---------------------------------------------------------------------------
+$dark:          $secondary !default;   // ardoise = teinte sombre de la charte
+$info:          #4EA6DC !default;      // bleu clair d'accent (charte du brief)
+$warning:       #E0A800 !default;      // ambre : aucune teinte imposée,
+                                       // utilisée uniquement pour l'alerte
+                                       // « plus de place disponible »
+
+// ---------------------------------------------------------------------------
+// 3. Neutres dérivés de la charte (mélanges calculés, pas de nouvelle teinte)
+// ---------------------------------------------------------------------------
+$text:          $dark !default;                     // #384050
+$text-muted:    mix($dark, #FFFFFF, 65%) !default;  // ardoise éclaircie
+$border:        mix($light, $dark, 88%) !default;   // filet très clair
+$bg:            $light !default;                    // #f1f8fc
+$bg-card:       #FFFFFF !default;
+
+// Teintes d'alerte : version très claire + texte contrasté
+$success-bg:    mix($success, #FFFFFF, 18%) !default;
+$success-text:  color.scale($success, $lightness: -35%) !default;
+$success-brd:   mix($success, #FFFFFF, 45%) !default;
+$danger-bg:     mix($danger, #FFFFFF, 16%) !default;
+$danger-text:   color.scale($danger, $lightness: -35%) !default;
+$danger-brd:    mix($danger, #FFFFFF, 40%) !default;
+$info-bg:       mix($info, #FFFFFF, 18%) !default;
+$info-text:     color.scale($info, $lightness: -55%) !default;
+$info-brd:      mix($info, #FFFFFF, 45%) !default;
+
+// ---------------------------------------------------------------------------
+// 4. Réglages transverses
+// ---------------------------------------------------------------------------
+$radius:        8px !default;
+$shadow:        0 4px 14px rgba(0, 0, 0, .08) !default;
+
+// ---------------------------------------------------------------------------
+// 5. Exposition en propriétés CSS personnalisées (consommées par app.css)
+//    Elles permettent aussi à une autre direction de rejouer la charte
+//    sans recompiler le Sass.
+// ---------------------------------------------------------------------------
 :root {
-    --tpk-primary:      #{$primary};
-    --tpk-primary-dark: #{$primary-dark};
-    --tpk-secondary:    #{$secondary};
-    --tpk-danger:       #{$danger};
-    --tpk-success:      #{$success};
-    --tpk-warning:      #{$warning};
-    --tpk-info:         #{$info};
-    --tpk-light:        #{$light};
-    --tpk-dark:         #{$dark};
+    --tpk-primary:       #{$primary};
+    --tpk-primary-dark:  #{$primary-dark};
+    --tpk-secondary:     #{$secondary};
+    --tpk-success:       #{$success};
+    --tpk-danger:        #{$danger};
+    --tpk-warning:       #{$warning};
+    --tpk-info:          #{$info};
+    --tpk-light:         #{$light};
+    --tpk-dark:          #{$dark};
+
+    --tpk-bg:            #{$bg};
+    --tpk-bg-card:       #{$bg-card};
+    --tpk-text:          #{$text};
+    --tpk-text-muted:    #{$text-muted};
+    --tpk-border:        #{$border};
+
+    --tpk-radius:        #{$radius};
+    --tpk-shadow:        #{$shadow};
 }

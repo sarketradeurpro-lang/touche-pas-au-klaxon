@@ -2,18 +2,64 @@
   "meta": [
     ["Étudiant", "Prénom Nom (à compléter)"],
     ["Titre du devoir", "Touche pas au klaxon — application MVC de covoiturage"],
-    ["URL dépôt", "(URL GitHub non fournie)"]
+    ["URL du dépôt GitHub", "(non fournie)"],
+    ["Stack technique", "PHP 8.3 · MariaDB 11.4 · MVC · Sass · Bootstrap 5 · PHPUnit 10 · PHPStan 6"],
+    ["Date de livraison", "2026"]
   ],
-  "presentation": "« Touche pas au klaxon » est une application web MVC écrite en PHP (8.1+) avec MariaDB, qui permet à des employés d'une entreprise de proposer ou de réserver des trajets en covoiturage entre ses différentes agences. Les employés sont importés de manière lecture seule depuis un fichier (users.txt), les agences et trajets sont gérés par l'application, et un rôle distinct Administrateur (ROLE_ADMIN) permet de gérer les agences.",
+  "presentation": "« Touche pas au klaxon » est une application web de covoiturage inter-agences écrite en PHP 8.3 selon une architecture MVC (modèle-vue-contrôleur) sans framework, sur une base de données MariaDB 11.4. Elle permet aux employés d'une entreprise de consulter les trajets prévus entre les différents sites et de proposer leurs propres trajets, afin de réduire le nombre de véhicules peu remplis. Les employés proviennent du système RH et sont importés en lecture seule : l'application ne permet ni leur création, ni leur modification, ni leur suppression. Un rôle distinct Administrateur (ROLE_ADMIN) gère en plus les agences et la suppression des trajets.",
   "fonctionnalites": [
-    "Authentification par e-mail / mot de passe (mots de passe hachés avec password_hash / vérifiés avec password_verify).",
-    "Deux rôles distincts : Employé (ROLE_USER) et Administrateur (ROLE_ADMIN).",
-    "Liste des trajets à venir (date de départ future, places disponibles > 0) avec agences de départ/d'arrivée et conducteur.",
-    "Création / modification / suppression d'un trajet par son auteur ou par un administrateur.",
-    "Validation métier : agence d'arrivée différente de l'agence de départ, et date de départ strictement postérieure à la date de départ du trajet.",
-    "Gestion des agences (CRUD) réservée aux administrateurs.",
-    "Tableau de bord admin : compteurs (employés, agences, trajets) et consultation des employés.",
-    "Employés en lecture seule depuis le fichier users.txt (aucune création/modification/suppression côté application).",
-    "Messages flash (succès / erreur) et sessions, protection de base contre les failles XSS (htmlspecialchars)."
+    "Page d'accueil accessible à tous : liste des trajets à venir, triée par date de départ croissante, limitée aux trajets disposant encore de places disponibles ; les trajets passés sont exclus.",
+    "Authentification par adresse email et mot de passe ; les mots de passe sont stockés hachés (password_hash) et vérifiés avec password_verify.",
+    "Deux rôles : Employé (ROLE_USER) et Administrateur (ROLE_ADMIN).",
+    "Utilisateur connecté : fenêtre modale de détail d'un trajet indiquant l'identité du proposeur, son téléphone, son adresse email et le nombre total de places.",
+    "Auteur d'un trajet (ou administrateur) : modification et suppression de ce trajet.",
+    "Création d'un trajet avec les informations du compte pré-renseignées et non modifiables.",
+    "Validation métier : agence de départ différente de l'agence d'arrivée, date d'arrivée strictement postérieure au départ, nombre de places cohérent.",
+    "Tableau de bord administrateur : compteurs (employés, agences, trajets), liste des employés, liste des trajets.",
+    "Gestion des agences réservée à l'administrateur : liste, création, modification, suppression.",
+    "Messages flash (succès, erreur, information) et échappement HTML systématique (htmlspecialchars) contre les injections de code."
+  ],
+  "architecture": [
+    ["Contrôleur frontal", "public/index.php", "Point d'entrée : configuration, session, routage"],
+    ["Routeur", "src/Core/Router.php", "Résolution des URL et appel du contrôleur"],
+    ["Contrôleurs", "src/Controllers", "Logique applicative et validation"],
+    ["Modèles", "src/Models", "Accès aux données (PDO, requêtes préparées)"],
+    ["Vues", "src/Views", "Affichage HTML"] ,
+    ["Noyau", "src/Core", "Auth, Csrf, Database, Request, Flash, View, Controller"],
+    ["Ressources", "public/assets", "Sass compilé, Bootstrap 5 local"],
+    ["Base", "database", "schema.sql, agences.txt, users.txt"],
+    ["Outils", "bin, tools", "install.php, check.php, phpunit, phpstan, makepdf.py"]
+  ],
+  "tables": [
+    ["agences", "id", "Villes où se trouvent les sites (ville unique)"],
+    ["employes", "id", "Employés importés du système RH (email unique, mot de passe haché)"],
+    ["trajets", "id", "Trajets : auteur, agence de départ, agence d'arrivée, groupe date-heure, places"]
+  ],
+  "mcd_jpeg": "docs/MCD.jpg",
+  "mld": "AGENCE (id, ville)\n\nEMPLOYE (id, nom, prenom, email, telephone, role, mot_de_passe)\n\nTRAJET (id, auteur_id, agence_depart_id, agence_arrivee_id,\n        date_depart, date_arrivee, nb_places_total, nb_places_disponibles)\n\nClés étrangères\n    TRAJET.auteur_id          -> EMPLOYE.id\n    TRAJET.agence_depart_id   -> AGENCE.id\n    TRAJET.agence_arrivee_id  -> AGENCE.id\n\nCardinalités\n    EMPLOYE (0,n) -- proposer -- (1,1) TRAJET\n    AGENCE  (0,n) -- être le départ de -- (1,1) TRAJET\n    AGENCE  (0,n) -- être l'arrivée de -- (1,1) TRAJET",
+  "palette": [
+    ["Bleu principal", "$primary", "#0074c7"],
+    ["Bleu foncé", "$primary-dark", "#00497c"],
+    ["Ardoise", "$secondary", "#384050"],
+    ["Vert", "$success", "#82b864"],
+    ["Rouge", "$danger", "#cd2c2e"],
+    ["Fond clair", "$light", "#f1f8fc"]
+  ],
+  "installation": "Prérequis : WAMP avec PHP 8.1+ et MariaDB actifs, extensions PDO, pdo_mysql et pdo_sqlite (tests).\n\n1. Copier .env.example vers .env et renseigner DB_DSN, DB_USER, DB_PASSWORD, ROOT_DB_USER, ROOT_DB_PASSWORD\n2. Démarrer MariaDB (port 3310 pour l'instance fournie)\n3. php composer.phar install   -> installe PHPUnit et PHPStan\n4. php bin/install.php         -> crée la base covoiturage et charge le jeu d'essais\n5. php -S 127.0.0.1:8000 -t public run-server.php\n6. Ouvrir http://127.0.0.1:8000 dans un navigateur",
+  "comptes": [
+    ["Administrateur", "alexandre.martin@email.fr", "Admin_2024!"],
+    ["Employé", "maxime.petit@email.fr", "Passw0rd!"]
+  ],
+  "tests": [
+    ["PHPUnit", "php bin/phpunit", "11 tests, 0 échec, 25 assertions (base SQLite en mémoire)"],
+    ["Analyse statique", "php bin/phpstan", "PHPStan 1.12.34 — niveau 6 — 0 erreur"],
+    ["Diagnostic", "php bin/check.php", "À exécuter avec MariaDB démarré (non exécuté lors de l'audit hors-ligne)"]
+  ],
+  "limites": [
+    "Aucune fonction de réservation de place : le nombre de places disponibles est ajusté par l'auteur du trajet lors de la modification.",
+    "Les tests utilisent une base SQLite en mémoire : ils sont isolés de la base MariaDB réelle et ne modifient aucune donnée.",
+    "Les comptes de démonstration utilisent des mots de passe connus (exigés par le cahier des charges) : ils doivent être changés en production.",
+    "L'historique Git contient encore un ancien mot de passe de base de données ; sa purge est une opération destructive distincte, volontairement non réalisée.",
+    "Le dossier ne contient pas encore le lien du dépôt GitHub ni le nom de l'étudiant, non fournis à ce jour."
   ]
 }

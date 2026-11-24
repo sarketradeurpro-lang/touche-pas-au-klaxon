@@ -5,7 +5,8 @@
  * @var \TouchePasAuKlaxon\Models\Agence[] $agences   Liste des agences.
  * @var string                              $action   URL de soumission.
  * @var \TouchePasAuKlaxon\Models\Trajet|null $trajet  Trajet en cours d'édition (ou null).
- * @var array|null                           $old     Valeurs précédentes (après erreur).
+ * @var array<string, mixed>|null           $old     Valeurs précédentes (après erreur).
+ * @var \TouchePasAuKlaxon\Models\Employe|null $currentUser Employé connecté.
  */
 
 $isEdit = $trajet !== null;
@@ -32,7 +33,25 @@ $vinfo = function (string $k, string $fallback = '') use ($old, $trajet): string
 <div class="tpk-card">
     <div class="card-header"><?= $isEdit ? 'Modifier le trajet' : 'Proposer un trajet' ?></div>
     <div class="card-body">
+        <?php if ($currentUser !== null): ?>
+            <?php /* Informations de l'utilisateur : pré-renseignées et non
+                     modifiables (cahier des charges §3.6). */ ?>
+            <div class="tpk-userbox">
+                <div class="tpk-userbox-title">Vos informations (non modifiables)</div>
+                <dl>
+                    <dt>Nom et prénom</dt>
+                    <dd><?= htmlspecialchars($currentUser->getPrenom() . ' ' . $currentUser->getNom()) ?></dd>
+
+                    <dt>Adresse email</dt>
+                    <dd><?= htmlspecialchars($currentUser->getEmail()) ?></dd>
+
+                    <dt>Téléphone</dt>
+                    <dd><?= htmlspecialchars((string) ($currentUser->getTelephone() ?? '—')) ?></dd>
+                </dl>
+            </div>
+        <?php endif; ?>
         <form method="post" action="<?= htmlspecialchars($action) ?>">
+            <input type="hidden" name="_csrf" value="<?= htmlspecialchars((string) ($csrfToken ?? '')) ?>">
             <div class="tpk-grid">
                 <div>
                     <label>Agence de départ</label>

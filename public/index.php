@@ -40,6 +40,31 @@ if (($config['env'] ?? 'dev') === 'dev') {
 if (session_status() === PHP_SESSION_NONE) {
     session_name($config['session_name'] ?? 'tpfk_session');
 
+    // Refuse les identifiants de session non générés par le serveur
+    // (protection contre la fixation de session).
+    ini_set('session.use_strict_mode', '1');
+
+    // Paramètres du cookie de session, centralisés dans config/config.php.
+    $sessionConfig = $config['session'] ?? [];
+
+    // Secure n'est activé qu'en HTTPS : le cookie reste fonctionnel en HTTP
+    // local (WAMP) tout en étant protégé en production.
+    $isHttps = (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off')
+        || (isset($_SERVER['SERVER_PORT']) && (int) $_SERVER['SERVER_PORT'] === 443);
+    $secure = $sessionConfig['cookie_secure'] ?? null;
+    if ($secure === null) {
+        $secure = $isHttps;
+    }
+
+    session_set_cookie_params([
+        'lifetime' => (int) ($sessionConfig['cookie_lifetime'] ?? 0),
+        'path'     => (string) ($sessionConfig['cookie_path'] ?? '/'),
+        'domain'   => (string) ($sessionConfig['cookie_domain'] ?? ''),
+        'secure'   => (bool) $secure,
+        'httponly' => (bool) ($sessionConfig['cookie_httponly'] ?? true),
+        'samesite' => (string) ($sessionConfig['cookie_samesite'] ?? 'Lax'),
+    ]);
+
     // Tableau de sessions local au projet (indépendant du répertoire tmp du
     // serveur), créé à la volée s'il n'existe pas.
     $sessionDir = dirname(__DIR__) . '/var/sessions';
@@ -82,6 +107,10 @@ $router->get('/admin/agences/{id}/modifier', $ns . 'AgenceController@edit');
 $router->post('/admin/agences/{id}/modifier', $ns . 'AgenceController@update');
 $router->post('/admin/agences/{id}/supprimer', $ns . 'AgenceController@destroy');
 $router->get('/admin/employes', $ns . 'AdminController@employees');
+
+// Trajets : administration complète (liste + suppression).
+$router->get('/admin/trajets', $ns . 'AdminController@trajets');
+$router->post('/admin/trajets/{id}/supprimer', $ns . 'AdminController@supprimerTrajet');
 
 // --- Dispatch -------------------------------------------------------------
 $router->dispatch($request);

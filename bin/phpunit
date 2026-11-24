@@ -15,7 +15,33 @@
 
 declare(strict_types=1);
 
-// --- Autoload des classes du projet et du stub de test ---------------------
+// --- PHPUnit réel (Composer) en priorité ----------------------------------
+$phpunitBin = __DIR__ . '/../vendor/bin/phpunit';
+if (is_file($phpunitBin)) {
+    $args = array_slice($argv, 1);
+    $cmd = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($phpunitBin);
+    foreach ($args as $arg) {
+        $cmd .= ' ' . escapeshellarg((string) $arg);
+    }
+    // Wrap execution in a transaction if a real DB connection exists.
+    // This prevents tests from persisting changes on a development DB.
+    $env = getenv('DB_DSN');
+    if ($env !== false && $env !== '') {
+        // Initialise PDO (same as application) – reuse Database::pdo()
+        $pdo = \TouchePasAuKlaxon\Core\Database::pdo();
+        $pdo->beginTransaction();
+        passthru($cmd, $exitCode);
+        // Rollback any modifications made by the tests.
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+    } else {
+        passthru($cmd, $exitCode);
+    }
+    exit((int) $exitCode);
+}
+
+// --- Repli hors-ligne : autoload des classes et du stub de test ------------
 require __DIR__ . '/../autoload.php';
 
 // Charge le stub PHPUnit si le vrai framework n'est pas disponible.

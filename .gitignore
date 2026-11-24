@@ -1,6 +1,6 @@
-# Dépendances du développeur (node_modules si un compilateur Sass local est utilisé)
+# Dépendances du développeur (Composer à la racine, node_modules local)
+/vendor/
 node_modules/
-vendor/
 __pycache__/
 
 # Base de données locale générée
@@ -12,8 +12,22 @@ var/
 .tools/
 *.log
 
+# Caches d'outils
+.phpunit.cache/
+.phpstan.cache/
+
+# Binaires Composer téléchargés localement (composer.lock reste versionné)
+composer.phar
+composer-setup.php
+
 # Sauvegardes et fichiers temporaires
 _*.txt
 
 # Artefact de génération — rapport à régénérer avec `python tools/makepdf.py`
 Nom_Prenom_Titre_devoir.pdf
+.env
+# Verrou et fichiers temporaires du journal de diagnostic
+check.log.lock
+.check.log.*.tmp
+/t�l�chargement (9)/jeu-d-essais/users.txt
+**/users.txt

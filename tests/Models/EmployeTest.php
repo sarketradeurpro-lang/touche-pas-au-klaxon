@@ -1,8 +1,6 @@
 <?php
 /**
- * Tests unitaires — modèle Employe.
- *
- * Vérifie la recherche par email et la validation du mot de passe.
+ * Tests unitaires — modèle Employe (base SQLite en mémoire).
  *
  * @package TouchePasAuKlaxon\Tests\Models
  */
@@ -14,6 +12,7 @@ namespace TouchePasAuKlaxon\Tests\Models;
 use PHPUnit\Framework\TestCase;
 use TouchePasAuKlaxon\Core\Database;
 use TouchePasAuKlaxon\Models\Employe;
+use TouchePasAuKlaxon\Tests\Support\TestDatabase;
 
 /**
  * Comportement de l'entité Employe.
@@ -22,32 +21,27 @@ final class EmployeTest extends TestCase
 {
     protected function setUp(): void
     {
-        Database::setPdo(new \PDO(
-            'mysql:host=127.0.0.1;port=3310;dbname=covoiturage;charset=utf8mb4',
-            'root',
-            'root',
-            [\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION]
-        ));
+        // Base isolée : aucun accès à la base MariaDB réelle.
+        Database::setPdo(TestDatabase::create());
     }
 
     public function testFindByEmailReturnsExistingEmployee(): void
     {
-        $employe = (new Employe())->findByEmail('alexandre.martin@email.fr');
-        $this->assertNotNull($employe, 'L\'administrateur doit exister en base.');
+        $employe = (new Employe())->findByEmail(TestDatabase::ADMIN_EMAIL);
+        $this->assertNotNull($employe, 'L\'administrateur de test doit exister en base.');
         $this->assertTrue($employe->isAdmin());
     }
 
     public function testFindByEmailReturnsNullForUnknown(): void
     {
-        $this->assertNull((new Employe())->findByEmail('inconnu@example.com'));
+        $this->assertNull((new Employe())->findByEmail('inconnu@example.test'));
     }
 
     public function testHashedPasswordVerification(): void
     {
-        $employe = (new Employe())->findByEmail('alexandre.martin@email.fr');
+        $employe = (new Employe())->findByEmail(TestDatabase::ADMIN_EMAIL);
         $this->assertNotNull($employe);
-        // Le mot de passe par défaut de l'admin est « Admin_2024! ».
-        $this->assertTrue($employe->verifyPassword('Admin_2024!'));
+        $this->assertTrue($employe->verifyPassword(TestDatabase::ADMIN_PASSWORD));
         $this->assertFalse($employe->verifyPassword('mauvais'));
     }
 }

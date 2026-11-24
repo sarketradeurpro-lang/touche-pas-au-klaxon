@@ -15,6 +15,7 @@ namespace TouchePasAuKlaxon\Controllers;
 use TouchePasAuKlaxon\Core\Controller;
 use TouchePasAuKlaxon\Core\Request;
 use TouchePasAuKlaxon\Core\Auth;
+use TouchePasAuKlaxon\Core\Csrf;
 use TouchePasAuKlaxon\Core\Flash;
 use TouchePasAuKlaxon\Models\Employe;
 
@@ -43,6 +44,11 @@ final class AuthController extends Controller
      */
     public function login(Request $request): void
     {
+        if (!Csrf::validate($request->post('_csrf'))) {
+            Flash::error('Jeton CSRF invalide ou expiré. Veuillez réessayer.');
+            $this->redirect('/login');
+        }
+
         $email = trim((string) ($request->post('email') ?? ''));
         $password = (string) ($request->post('password') ?? '');
 

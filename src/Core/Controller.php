@@ -19,6 +19,7 @@ use PDO;
  */
 abstract class Controller
 {
+    /** @var array<string, mixed> */
     private array $config;
 
     private View $view;
@@ -26,7 +27,7 @@ abstract class Controller
     /**
      * Constructeur : récupère la configuration et prépare le moteur de vues.
      *
-     * @param array $config Configuration globale de l'application.
+     * @param array<string, mixed> $config Configuration globale de l'application.
      */
     public function __construct(array $config)
     {
@@ -48,13 +49,29 @@ abstract class Controller
      * Rendu d'un gabarit dans le layout global.
      *
      * @param string $view Nom de la vue.
-     * @param array  $data Variables injectées.
+     * @param array<string, mixed> $data Variables injectées.
      *
      * @return string HTML final (déjà envoyé).
      */
     protected function render(string $view, array $data = []): string
     {
         $html = $this->view->renderWithLayout($view, 'layout', $data);
+        echo $html;
+
+        return $html;
+    }
+
+    /**
+     * Rendu d'une vue sans gabarit global (fragment HTML pour une modale AJAX).
+     *
+     * @param string $view Nom de la vue.
+     * @param array<string, mixed> $data Variables injectées.
+     *
+     * @return string HTML final (déjà envoyé).
+     */
+    protected function renderPartial(string $view, array $data = []): string
+    {
+        $html = $this->view->renderPartial($view, $data);
         echo $html;
 
         return $html;

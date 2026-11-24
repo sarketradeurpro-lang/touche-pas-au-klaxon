@@ -1,11 +1,19 @@
+/* ============================================================================
+   Palette de la charte exposée en variables CSS.
+   ----------------------------------------------------------------------------
+   Miroir de public/assets/sass/_variables.scss, utile pour les pages qui ne
+   seraient pas recompilées avec Sass. La source de vérité reste le fichier
+   SCSS : en cas de divergence, c'est lui qui fait foi.
+   ========================================================================== */
+
 :root {
-  --tpk-primary: #0d6efd;
-  --tpk-primary-dark: #0a58ca;
-  --tpk-secondary: #6c757d;
-  --tpk-danger: #dc3545;
-  --tpk-success: #198754;
-  --tpk-warning: #ffc107;
-  --tpk-info: #0dcaf0;
-  --tpk-light: #f8f9fa;
-  --tpk-dark: #212529;
+  --tpk-primary:      #0074c7;
+  --tpk-primary-dark: #00497c;
+  --tpk-secondary:    #384050;
+  --tpk-danger:       #cd2c2e;
+  --tpk-success:      #82b864;
+  --tpk-warning:      #E0A800;
+  --tpk-info:         #4EA6DC;
+  --tpk-light:        #f1f8fc;
+  --tpk-dark:         #384050;
 }

@@ -2,8 +2,7 @@
 /**
  * Page d'accueil : liste des trajets disponibles.
  *
- * @var array $trajets Liste des trajets futurs avec places disponibles,
- *                     chacun contenant les champs nécessaires à l'affichage.
+ * @var array<int, array<string, mixed>> $trajets Trajets futurs avec places disponibles.
  */
 
 $hasDetailsUser = ($currentUser ?? null) !== null;
@@ -14,6 +13,7 @@ $hasDetailsUser = ($currentUser ?? null) !== null;
         <?php if (empty($trajets)): ?>
             <p>Aucun trajet disponible pour le moment. <?= $hasDetailsUser ? 'Soyez le premier à en proposer un&nbsp;!' : 'Connectez-vous pour proposer un trajet.' ?></p>
         <?php else: ?>
+            <div class="tpk-table-wrap table-responsive">
             <table class="tpk-table">
                 <thead>
                     <tr>
@@ -38,34 +38,48 @@ $hasDetailsUser = ($currentUser ?? null) !== null;
                                 </span>
                             </td>
                             <td>
-                                <button class="tpk-btn tpk-btn-outline"
-                                        onclick="openDetail(<?= (int) $trajet['id'] ?>)">Détails</button>
+                                <?php if ($hasDetailsUser): ?>
+                                    <button class="tpk-btn tpk-btn-outline"
+                                            onclick="openDetail(<?= (int) $trajet['id'] ?>)">Détails</button>
+                                <?php else: ?>
+                                    <span class="tpk-form-hint">Connexion requise</span>
+                                <?php endif; ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
+            </div>
         <?php endif; ?>
     </div>
 </div>
 
 <?php if ($hasDetailsUser): ?>
-    <!-- Fenêtre modale : détail d'un trajet (accessible à l'utilisateur connecté). -->
-    <div id="trajetModal" style="display:none;"></div>
+    <!-- Fenêtre modale : détail d'un trajet (réservé à l'utilisateur connecté). -->
+    <div id="trajetModal" class="tpk-modal" style="display:none;">
+        <div class="tpk-modal-dialog" role="dialog" aria-modal="true" aria-label="Détail du trajet">
+            <button type="button" class="tpk-modal-close" aria-label="Fermer" onclick="closeDetail()">&times;</button>
+            <div id="trajetModalContent"></div>
+        </div>
+    </div>
     <script>
         function openDetail(id) {
-            // Charge le détail du trajet dans la modale via un fetch léger.
-            fetch('/trajets/' + id)
+            // Fragment HTML seul (sans header/footer) pour la modale.
+            fetch('/trajets/' + id + '?partial=1', {headers: {'X-Requested-With': 'XMLHttpRequest'}})
                 .then(r => r.text())
                 .then(html => {
-                    const el = document.getElementById('trajetModal');
-                    el.innerHTML = html;
-                    el.style.display = 'block';
+                    document.getElementById('trajetModalContent').innerHTML = html;
+                    document.getElementById('trajetModal').style.display = 'flex';
                 });
         }
+        function closeDetail() {
+            document.getElementById('trajetModal').style.display = 'none';
+        }
         document.addEventListener('click', function (e) {
-            const modal = document.getElementById('trajetModal');
-            if (e.target.id === 'trajetModal') { modal.style.display = 'none'; }
+            if (e.target.id === 'trajetModal') { closeDetail(); }
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') { closeDetail(); }
         });
     </script>
 <?php else: ?>

@@ -1,0 +1,8 @@
+parameters:
+    level: 6
+    paths:
+        - src
+        - bin/check.php
+    excludePaths:
+        # Stub hors-ligne de PHPUnit (classes déjà fournies par vendor/).
+        - tests/Stubs/*

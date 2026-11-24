@@ -1,0 +1,33 @@
+<?php
+/**
+ * Lanceur PHPStan officiel (installé par Composer).
+ *
+ * Usage :
+ *     php bin/phpstan analyse [options]
+ *     php bin/phpstan            # analyse selon phpstan.neon
+ *
+ * Si PHPStan n'est pas installé (vendor absent), le script explique la
+ * commande à exécuter. Il n'existe plus de faux analyseur maison : le
+ * résultat affiché provient toujours du vrai PHPStan.
+ *
+ * @package TouchePasAuKlaxon\Bin
+ */
+
+declare(strict_types=1);
+
+$phpstanBin = __DIR__ . '/../vendor/bin/phpstan';
+
+if (!is_file($phpstanBin)) {
+    fwrite(STDERR, "PHPStan n'est pas installé.\n");
+    fwrite(STDERR, "Exécutez : php composer.phar install\n");
+    exit(1);
+}
+
+$args = array_slice($argv, 1);
+$cmd = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($phpstanBin);
+foreach ($args as $arg) {
+    $cmd .= ' ' . escapeshellarg((string) $arg);
+}
+
+passthru($cmd, $exitCode);
+exit((int) $exitCode);

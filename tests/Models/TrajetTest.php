@@ -1,10 +1,8 @@
 <?php
 /**
- * Tests unitaires — modèle Trajet (opérations en base).
+ * Tests unitaires — modèle Trajet (base SQLite en mémoire).
  *
- * Exécution avec un serveur MariaDB lancé :
- *     bin/phpunit            (runner maison, équivalent PHPUnit)
- *     vendor/bin/phpunit     (si composer install a été réalisé)
+ * Aucune connexion à la base MariaDB réelle n'est effectuée.
  *
  * @package TouchePasAuKlaxon\Tests\Models
  */
@@ -16,6 +14,7 @@ namespace TouchePasAuKlaxon\Tests\Models;
 use PHPUnit\Framework\TestCase;
 use TouchePasAuKlaxon\Core\Database;
 use TouchePasAuKlaxon\Models\Trajet;
+use TouchePasAuKlaxon\Tests\Support\TestDatabase;
 
 /**
  * Vérifie les opérations d'écriture (insertion, mise à jour, suppression)
@@ -28,18 +27,13 @@ final class TrajetTest extends TestCase
 
     protected function setUp(): void
     {
-        // Connexion à une base de test dédiée (configuration ci-dessous).
-        Database::setPdo(new \PDO(
-            'mysql:host=127.0.0.1;port=3310;dbname=covoiturage;charset=utf8mb4',
-            'root',
-            'root',
-            [\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION]
-        ));
+        // Base isolée : aucun accès à la base MariaDB réelle.
+        Database::setPdo(TestDatabase::create());
     }
 
     protected function tearDown(): void
     {
-        // Nettoyage : supprime les trajets créés par les tests.
+        // Nettoyage de la base en mémoire (ceinture et bretelles).
         $db = Database::pdo();
         foreach ($this->createdIds as $id) {
             $db->prepare('DELETE FROM trajets WHERE id = :id')
@@ -94,6 +88,7 @@ final class TrajetTest extends TestCase
         ]);
 
         $fresh = $trajet->find($id);
+        $this->assertNotNull($fresh);
         $this->assertSame(3, $fresh->getAgenceArriveeId());
         $this->assertSame(5, $fresh->getNbPlacesTotal());
         $this->assertSame(5, $fresh->getNbPlacesDisponibles());

@@ -21,9 +21,11 @@ USE covoiturage;
 -- ----------------------------------------------------------------------------
 -- Utilisateur applicatif dédié (bonnes pratiques de sécurité) :
 -- l'application ne se connecte jamais avec le compte root.
+-- Le mot de passe n'est PAS stocké ici : bin/install.php le génère (ou le lit
+-- dans .env) et applique ALTER USER. Voir README §3.
 -- ----------------------------------------------------------------------------
-CREATE USER IF NOT EXISTS 'covoiturage'@'localhost' IDENTIFIED BY 'Covoiturage_2024!';
-CREATE USER IF NOT EXISTS 'covoiturage'@'127.0.0.1' IDENTIFIED BY 'Covoiturage_2024!';
+CREATE USER IF NOT EXISTS 'covoiturage'@'localhost';
+CREATE USER IF NOT EXISTS 'covoiturage'@'127.0.0.1';
 GRANT SELECT, INSERT, UPDATE, DELETE ON covoiturage.* TO 'covoiturage'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON covoiturage.* TO 'covoiturage'@'127.0.0.1';
 FLUSH PRIVILEGES;

@@ -16,6 +16,7 @@ namespace TouchePasAuKlaxon\Controllers;
 use TouchePasAuKlaxon\Core\Controller;
 use TouchePasAuKlaxon\Core\Request;
 use TouchePasAuKlaxon\Core\Auth;
+use TouchePasAuKlaxon\Core\Csrf;
 use TouchePasAuKlaxon\Core\Flash;
 use TouchePasAuKlaxon\Models\Agence;
 
@@ -54,6 +55,12 @@ final class AgenceController extends Controller
     public function store(Request $request): void
     {
         Auth::requireAdmin();
+
+        if (!Csrf::validate($request->post('_csrf'))) {
+            Flash::error('Jeton CSRF invalide ou expiré. Veuillez réessayer.');
+            $this->redirect('/admin/agences/creer');
+        }
+
         $ville = trim((string) ($request->post('ville') ?? ''));
 
         if ($ville === '') {
@@ -62,7 +69,17 @@ final class AgenceController extends Controller
             return;
         }
 
-        (new Agence())->create($ville);
+        try {
+            (new Agence())->create($ville);
+        } catch (\PDOException $e) {
+            if ((string) $e->getCode() === '23000') {
+                Flash::error('Cette agence existe déjà.');
+                $this->render('admin/agences/form', ['ville' => $ville]);
+                return;
+            }
+            throw $e;
+        }
+
         Flash::success('L\'agence « ' . $ville . ' » a bien été créée.');
         $this->redirect('/admin/agences');
     }
@@ -94,7 +111,14 @@ final class AgenceController extends Controller
     public function update(Request $request): void
     {
         Auth::requireAdmin();
+
         $id = (int) ($request->routeParam('id') ?? 0);
+
+        if (!Csrf::validate($request->post('_csrf'))) {
+            Flash::error('Jeton CSRF invalide ou expiré. Veuillez réessayer.');
+            $this->redirect('/admin/agences/' . $id . '/modifier');
+        }
+
         $ville = trim((string) ($request->post('ville') ?? ''));
 
         if ($ville === '') {
@@ -103,7 +127,17 @@ final class AgenceController extends Controller
             return;
         }
 
-        (new Agence())->update($id, $ville);
+        try {
+            (new Agence())->update($id, $ville);
+        } catch (\PDOException $e) {
+            if ((string) $e->getCode() === '23000') {
+                Flash::error('Une autre agence porte déjà ce nom.');
+                $this->render('admin/agences/form', ['ville' => $ville, 'id' => $id]);
+                return;
+            }
+            throw $e;
+        }
+
         Flash::success('L\'agence a bien été mise à jour.');
         $this->redirect('/admin/agences');
     }
@@ -116,6 +150,12 @@ final class AgenceController extends Controller
     public function destroy(Request $request): void
     {
         Auth::requireAdmin();
+
+        if (!Csrf::validate($request->post('_csrf'))) {
+            Flash::error('Jeton CSRF invalide ou expiré. La suppression a été annulée.');
+            $this->redirect('/admin/agences');
+        }
+
         $id = (int) ($request->routeParam('id') ?? 0);
         $agence = (new Agence())->find($id);
 
@@ -124,7 +164,17 @@ final class AgenceController extends Controller
             $this->redirect('/admin/agences');
         }
 
-        (new Agence())->delete($id);
+        try {
+            (new Agence())->delete($id);
+        } catch (\PDOException $e) {
+            // Violation de clé étrangère : des trajets utilisent cette agence.
+            if ((string) $e->getCode() === '23000') {
+                Flash::error('Impossible de supprimer cette agence : des trajets y sont rattachés.');
+                $this->redirect('/admin/agences');
+            }
+            throw $e;
+        }
+
         Flash::success('L\'agence « ' . $agence->getVille() . ' » a bien été supprimée.');
         $this->redirect('/admin/agences');
     }

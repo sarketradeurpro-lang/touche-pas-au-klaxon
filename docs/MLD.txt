@@ -1,0 +1,107 @@
+================================================================================
+ MLD — « Touche pas au klaxon »
+ Modèle Logique de Données (format textuel)
+ SGBD : MariaDB 11.4 / InnoDB — Base : covoiturage — Jeu de caractères : utf8mb4
+================================================================================
+
+
+1. NOTATION
+--------------------------------------------------------------------------------
+   ENTITE (attribut1, attribut2, …)          : relation (table)
+   #attr  : clé primaire (identifiant)
+   @attr  : clé étrangère
+   attr?  : attribut facultatif (NULL autorisé)
+
+
+2. RELATIONS
+--------------------------------------------------------------------------------
+   AGENCE (#id, ville)
+
+       id      : INT UNSIGNED      clé primaire, AUTO_INCREMENT
+       ville   : VARCHAR(80)       NOT NULL, UNIQUE (uq_agence_ville)
+
+
+   EMPLOYE (#id, nom, prenom, email, telephone?, role, mot_de_passe)
+
+       id           : INT UNSIGNED  clé primaire, AUTO_INCREMENT
+       nom          : VARCHAR(80)   NOT NULL
+       prenom       : VARCHAR(80)   NOT NULL
+       email        : VARCHAR(160)  NOT NULL, UNIQUE (uq_employe_email)
+       telephone    : VARCHAR(20)   NULL
+       role         : VARCHAR(20)   NOT NULL, valeur par défaut 'ROLE_USER'
+                                    (valeurs utilisées : ROLE_USER, ROLE_ADMIN)
+       mot_de_passe : VARCHAR(255)  NOT NULL — empreinte password_hash()
+
+       Remarque : les employés sont issus du système RH, importés en lecture seule
+       depuis database/users.txt. L'application ne permet ni création, ni
+       modification, ni suppression d'un employé.
+
+
+   TRAJET (#id, @auteur_id, @agence_depart_id, @agence_arrivee_id,
+           date_depart, date_arrivee, nb_places_total, nb_places_disponibles)
+
+       id                    : INT UNSIGNED      clé primaire, AUTO_INCREMENT
+       auteur_id             : INT UNSIGNED      NOT NULL, FK -> EMPLOYE(id)
+       agence_depart_id      : INT UNSIGNED      NOT NULL, FK -> AGENCE(id)
+       agence_arrivee_id     : INT UNSIGNED      NOT NULL, FK -> AGENCE(id)
+       date_depart           : DATETIME          NOT NULL
+       date_arrivee          : DATETIME          NOT NULL
+       nb_places_total       : TINYINT UNSIGNED  NOT NULL
+       nb_places_disponibles : TINYINT UNSIGNED  NOT NULL
+
+
+3. CONTRAINTES D'INTÉGRITÉ
+--------------------------------------------------------------------------------
+   Clés étrangères
+       fk_trajet_auteur   : TRAJET.auteur_id          -> EMPLOYE.id
+       fk_trajet_depart   : TRAJET.agence_depart_id   -> AGENCE.id
+       fk_trajet_arrivee  : TRAJET.agence_arrivee_id  -> AGENCE.id
+
+   Contraintes de vérification (CHECK)
+       ck_trajet_agences_distinctes   : agence_depart_id <> agence_arrivee_id
+       ck_trajet_dates_coherentes     : date_arrivee > date_depart
+       ck_trajet_places_total         : nb_places_total > 0
+       ck_trajet_places_disponibles   : nb_places_disponibles >= 0
+                                        AND nb_places_disponibles <= nb_places_total
+
+   Index
+       idx_trajet_auteur    (auteur_id)          accélère les listes « mes trajets »
+       idx_trajet_depart    (agence_depart_id)   accélère les jointures de liste
+       idx_trajet_arrivee   (agence_arrivee_id)  accélère les jointures de liste
+
+
+4. CARDINALITÉS
+--------------------------------------------------------------------------------
+   EMPLOYE — (0,n) « proposer » (1,1) — TRAJET
+       Un employé propose zéro ou plusieurs trajets ; chaque trajet est proposé
+       par exactement un employé.
+
+   AGENCE — (0,n) « être le départ de » (1,1) — TRAJET
+       Une agence est le départ de zéro ou plusieurs trajets ; chaque trajet a
+       exactement une agence de départ.
+
+   AGENCE — (0,n) « être l'arrivée de » (1,1) — TRAJET
+       Une agence est l'arrivée de zéro ou plusieurs trajets ; chaque trajet a
+       exactement une agence d'arrivée.
+
+
+5. SCHÉMA RELATIONNEL ÉQUIVALENT
+--------------------------------------------------------------------------------
+   AGENCE  (id, ville)
+   EMPLOYE (id, nom, prenom, email, telephone, role, mot_de_passe)
+   TRAJET  (id, auteur_id, agence_depart_id, agence_arrivee_id, date_depart,
+            date_arrivee, nb_places_total, nb_places_disponibles)
+
+   Aucune table de réservation n'existe dans cette version : les places
+   disponibles sont décrémentées manuellement par l'auteur du trajet.
+
+
+6. FICHIERS ASSOCIÉS
+--------------------------------------------------------------------------------
+   database/schema.sql   : création de la base, des tables, des contraintes et
+                           de l'utilisateur applicatif.
+   bin/install.php       : alimentation de la base (agences, employés, trajets
+                           de démonstration).
+   database/agences.txt  : jeu d'essais des agences (12 villes).
+   database/users.txt    : jeu d'essais des employés (20 personnes).
+================================================================================

@@ -35,7 +35,7 @@ final class View
      * le HTML produit.
      *
      * @param string $template Nom du gabarit (sans .php).
-     * @param array  $data     Variables injectées dans la vue.
+     * @param array<string, mixed> $data Variables injectées dans la vue.
      *
      * @return string HTML généré.
      */
@@ -56,16 +56,37 @@ final class View
      *
      * @param string $template Nom du gabarit de contenu.
      * @param string $layout   Nom du layout (gabarit global).
-     * @param array  $data     Variables injectées (dont $content).
+     * @param array<string, mixed> $data Variables injectées (dont $content).
      *
      * @return string HTML final.
      */
     public function renderWithLayout(string $template, string $layout = 'layout', array $data = []): string
     {
+        // L'utilisateur courant est disponible AUSSI dans la vue de contenu
+        // (nécessaire pour les vues qui l'affichent : bloc « vos informations »
+        // du formulaire, fenêtre modale de détail d'un trajet…).
+        $data['currentUser'] = Auth::user();
+        $data['csrfToken'] = Csrf::token();
+
         $data['content'] = $this->render($template, $data);
         $data['flashMessages'] = Flash::pull();
-        $data['currentUser'] = Auth::user();
 
         return $this->render($layout, $data);
+    }
+
+    /**
+     * Rendu d'une vue seule, sans gabarit global (réponses partielles AJAX).
+     *
+     * @param string $template Nom du gabarit de contenu.
+     * @param array<string, mixed> $data Variables injectées.
+     *
+     * @return string HTML généré.
+     */
+    public function renderPartial(string $template, array $data = []): string
+    {
+        $data['currentUser'] = Auth::user();
+        $data['csrfToken'] = Csrf::token();
+
+        return $this->render($template, $data);
     }
 }

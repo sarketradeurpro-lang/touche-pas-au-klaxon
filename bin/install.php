@@ -23,11 +23,42 @@ require __DIR__ . '/../autoload.php';
 use TouchePasAuKlaxon\Core\Database;
 use TouchePasAuKlaxon\Core\Flash;
 
+// Chargement du .env (si présent) – même logique que config/config.php
+$envPath = __DIR__ . '/../.env';
+if (file_exists($envPath)) {
+    if (!is_readable($envPath)) {
+        throw new RuntimeException('Impossible de lire le fichier .env à la racine du projet.');
+    }
+    $linesEnv = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($linesEnv as $line) {
+        $line = trim($line);
+        if ($line === '' || str_starts_with($line, '#') || str_starts_with($line, ';')) {
+            continue;
+        }
+        $parts = explode('=', $line, 2);
+        if (count($parts) !== 2) {
+            continue;
+        }
+        $key = trim($parts[0]);
+        $value = trim($parts[1]);
+        // Priorité aux variables déjà définies par le serveur/système
+        if (getenv($key) === false) {
+            putenv("$key=$value");
+            $_ENV[$key] = $value;
+        }
+    }
+}
+
+
 // --- Paramètres de connexion root (pour créer la base) ---------------------
 $rootHost = $argv[1] ?? '127.0.0.1';
 $rootPort = (int) ($argv[2] ?? 3310);
-$rootUser = $argv[3] ?? 'root';
-$rootPass = $argv[4] ?? 'root';
+// Le compte root doit être fourni explicitement ou via des variables d'environnement.
+$rootUser = $argv[3] ?? getenv('ROOT_DB_USER');
+$rootPass = $argv[4] ?? getenv('ROOT_DB_PASSWORD');
+if ($rootUser === false || $rootPass === false || $rootUser === '' || $rootPass === '') {
+    throw new RuntimeException('Paramètres root DB manquants pour bin/install.php');
+}
 
 $rootPdo = new PDO(
     "mysql:host=$rootHost;port=$rootPort;charset=utf8mb4",
@@ -46,13 +77,29 @@ if ($schema === false) {
 }
 $cli('Exécution du schéma (création base + tables)...');
 $rootPdo->exec($schema);
+
+// -------------------------------------------------
+// Attribution du mot de passe au compte applicatif 'covoiturage'
+// -------------------------------------------------
+// Le mot de passe est récupéré depuis la variable d'environnement DB_PASSWORD.
+$passwordForApp = getenv('DB_PASSWORD');
+if ($passwordForApp === false || $passwordForApp === '') {
+    throw new RuntimeException('DB_PASSWORD manquant ou vide dans .env');
+}
+// Utilisation de quote pour sécuriser la chaîne.
+$quotedPwd = $rootPdo->quote($passwordForApp);
+// ALTER USER fonctionne aussi bien si l'utilisateur existe déjà que s'il a été créé sans mot de passe.
+$rootPdo->exec("ALTER USER 'covoiturage'@'localhost' IDENTIFIED BY $quotedPwd");
+$rootPdo->exec("ALTER USER 'covoiturage'@'127.0.0.1' IDENTIFIED BY $quotedPwd");
+// Rafraîchissement des privilèges pour être sûr que les changements sont pris en compte.
+$rootPdo->exec('FLUSH PRIVILEGES');
 $cli('Schéma appliqué.');
 
 // --- 2 & 3) Données initiales (agences + employés) -------------------------
 $dbConfig = [
     'dsn'      => "mysql:host=$rootHost;port=$rootPort;dbname=covoiturage;charset=utf8mb4",
     'user'     => 'covoiturage',
-    'password' => 'Covoiturage_2024!',
+    'password' => getenv('DB_PASSWORD'),
     'options'  => [
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
