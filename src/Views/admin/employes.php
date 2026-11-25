@@ -6,7 +6,7 @@
  */
 ?>
 <h1>Employés</h1>
-<p class="tpk-form-hint">Liste issue du système RH (fichier users.txt) — lecture seule, aucune modification possible depuis l'application.</p>
+<p class="tpk-form-hint">Liste issue du système RH (fichier users.txt s'il est présent, sinon users_demo.txt) — lecture seule, aucune modification possible depuis l'application.</p>
 
 <div class="tpk-card">
     <div class="card-body">

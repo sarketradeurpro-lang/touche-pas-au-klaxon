@@ -12,7 +12,7 @@ $canManage = ($currentUser ?? null) !== null
     && ($currentUser->isAdmin()
         || ($auteur !== null && $currentUser->getId() === $auteur->getId()));
 ?>
-<div style="position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; z-index:1050;">
+<div class="tpk-modal-inline" style="position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; z-index:1050;">
     <div style="background:#fff; border-radius:var(--tpk-radius); max-width:560px; width:92%; box-shadow:var(--tpk-shadow); max-height:90vh; overflow:auto;">
         <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
             <span>Détail du trajet</span>

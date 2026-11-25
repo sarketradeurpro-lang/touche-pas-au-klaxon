@@ -43,8 +43,9 @@ CREATE TABLE agences (
 -- ----------------------------------------------------------------------------
 -- Table EMPLOYE
 -- ----------------------------------------------------------------------------
--- Les employés proviennent du système RH (fichier « users.txt »). Ils ne sont
--- pas modifiables depuis l'interface : aucun CRUD employé côté applicatif.
+-- Les employés proviennent du système RH (fichier « users.txt » s'il est
+-- présent, sinon « users_demo.txt »). Ils ne sont pas modifiables depuis
+-- l'interface : aucun CRUD employé côté applicatif.
 CREATE TABLE employes (
     id              INT UNSIGNED     NOT NULL AUTO_INCREMENT,
     nom             VARCHAR(80)      NOT NULL,

@@ -23,11 +23,15 @@ composer-setup.php
 # Sauvegardes et fichiers temporaires
 _*.txt
 
-# Artefact de génération — rapport à régénérer avec `python tools/makepdf.py`
+# Artefact de génération — rapport à régénérer avec python tools/makepdf.py
 Nom_Prenom_Titre_devoir.pdf
 .env
+# Ignorer les fichiers contenant les données réelles des employés
+database/users.txt
+# (optionnel) sauvegarde du fichier original si besoin
+database/users_original.txt
 # Verrou et fichiers temporaires du journal de diagnostic
 check.log.lock
 .check.log.*.tmp
-/t�l�chargement (9)/jeu-d-essais/users.txt
+/téléchargement (9)/jeu-d-essais/users.txt
 **/users.txt

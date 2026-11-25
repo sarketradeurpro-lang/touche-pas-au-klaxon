@@ -36,6 +36,7 @@ $title = $title ?? 'Touche pas au klaxon';
                 <li><a href="/admin/agences">Agences</a></li>
                 <li><a href="/admin/employes">Employés</a></li>
                 <li><a href="/admin/trajets">Trajets</a></li>
+                <li><a href="/trajets/creer">Proposer un trajet</a></li>
                 <li><a href="/">Site public</a></li>
             <?php else: ?>
                 <li><a href="/">Accueil</a></li>

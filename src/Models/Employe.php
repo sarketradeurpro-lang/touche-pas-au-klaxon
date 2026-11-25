@@ -3,8 +3,8 @@
  * Modèle Employe.
  *
  * Représente un employé de l'entreprise. Les employés proviennent du système
- * RH (fichier « users.txt ») et ne sont **pas** modifiables depuis
- * l'application (aucun CRUD employé).
+ * RH (fichier « users.txt » s'il est présent, sinon « users_demo.txt ») et ne
+ * sont **pas** modifiables depuis l'application (aucun CRUD employé).
  *
  * @package TouchePasAuKlaxon\Models
  */

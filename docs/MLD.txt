@@ -33,7 +33,8 @@
        mot_de_passe : VARCHAR(255)  NOT NULL — empreinte password_hash()
 
        Remarque : les employés sont issus du système RH, importés en lecture seule
-       depuis database/users.txt. L'application ne permet ni création, ni
+       depuis database/users.txt s'il est présent, sinon depuis
+       database/users_demo.txt. L'application ne permet ni création, ni
        modification, ni suppression d'un employé.
 
 
@@ -103,5 +104,6 @@
    bin/install.php       : alimentation de la base (agences, employés, trajets
                            de démonstration).
    database/agences.txt  : jeu d'essais des agences (12 villes).
-   database/users.txt    : jeu d'essais des employés (20 personnes).
+   database/users.txt    : jeu local des employés (non versionné, s'il est présent).
+   database/users_demo.txt : jeu de démonstration fictif (repli, 20 personnes).
 ================================================================================

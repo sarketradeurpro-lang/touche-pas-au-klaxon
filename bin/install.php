@@ -6,7 +6,8 @@
  *   1. exécute database/schema.sql (création de la base + des tables +
  *      de l'utilisateur applicatif) ;
  *   2. insère les 12 agences du fichier agences.txt ;
- *   3. insère les 20 employés du fichier users.txt (mot de passe par défaut) ;
+ *   3. insère les 20 employés du fichier users.txt s'il est présent, sinon de
+ *      users_demo.txt (jeu fictif), avec le mot de passe par défaut ;
  *   4. désigne un compte administrateur ;
  *   5. crée quelques trajets de démonstration.
  *
@@ -49,6 +50,21 @@ if (file_exists($envPath)) {
     }
 }
 
+
+// --- Sélection du jeu d'employés --------------------------------------------
+// Priorité au fichier réel ; repli sur le jeu de démonstration anonymisé.
+$usersFile = __DIR__ . '/../database/users.txt';
+$usesDemoUsers = false;
+
+if (!is_file($usersFile)) {
+    $usersFile = __DIR__ . '/../database/users_demo.txt';
+    $usesDemoUsers = true;
+}
+
+if (!is_file($usersFile)) {
+    fwrite(STDERR, "Erreur : aucun fichier d'employés trouvé (database/users.txt ou database/users_demo.txt).\n");
+    exit(1);
+}
 
 // --- Paramètres de connexion root (pour créer la base) ---------------------
 $rootHost = $argv[1] ?? '127.0.0.1';
@@ -133,18 +149,31 @@ $empStmt = $db->prepare(
      VALUES (:nom, :prenom, :email, :telephone, :role, :mot_de_passe)'
 );
 
-$lines = file(__DIR__ . '/../database/users.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?? [];
+$lines = file($usersFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+if ($lines === false) {
+    fwrite(STDERR, "Erreur : lecture impossible du fichier d'employés.\n");
+    exit(1);
+}
+
 $adminEmail = null;
+$employeeExampleEmail = null;
 foreach ($lines as $line) {
     [$nom, $prenom, $telephone, $email] = array_map('trim', array_pad(explode(',', $line), 4, ''));
     if ($nom === '' || $email === '') {
         continue;
     }
-    // Désigne « Alexandre Martin » comme administrateur de démonstration.
-    $role = (mb_strtolower($prenom) === 'alexandre' && mb_strtolower($nom) === 'martin')
-        ? 'ROLE_ADMIN'
-        : 'ROLE_USER';
+    // Désigne l'administrateur : « Admin Demo » pour le jeu fictif, ou
+    // l'employé historique du jeu réel (prénom/nom définis ci-dessous).
+    $isDemoAdmin = $usesDemoUsers && $nom === 'Admin' && $prenom === 'Demo';
+    $isRealAdmin = !$usesDemoUsers
+        && mb_strtolower($prenom) === 'alexandre'
+        && mb_strtolower($nom) === 'martin';
+    $role = ($isDemoAdmin || $isRealAdmin) ? 'ROLE_ADMIN' : 'ROLE_USER';
     $pwd = $role === 'ROLE_ADMIN' ? $adminHash : $hash;
+
+    if ($role !== 'ROLE_ADMIN' && $employeeExampleEmail === null) {
+        $employeeExampleEmail = $email;
+    }
 
     $empStmt->execute([
         ':nom'             => $nom,
@@ -207,6 +236,7 @@ foreach ($demo as $i => $t) {
 $cli("Installation terminée avec succès.");
 echo "--------------------------------------------------------------\n";
 echo "  Compte ADMIN    : $adminEmail / $adminPassword\n";
-echo "  Compte EMPLOYÉ  : ex. sophie.dubois@email.fr / $defaultPassword\n";
+$employeeExample = $employeeExampleEmail ?? '(aucun employé trouvé)';
+echo "  Compte EMPLOYÉ  : ex. $employeeExample / $defaultPassword\n";
 echo "  (Tous les autres employés : mot de passe $defaultPassword)\n";
 echo "--------------------------------------------------------------\n";

@@ -27,7 +27,7 @@
     ["Vues", "src/Views", "Affichage HTML"] ,
     ["Noyau", "src/Core", "Auth, Csrf, Database, Request, Flash, View, Controller"],
     ["Ressources", "public/assets", "Sass compilé, Bootstrap 5 local"],
-    ["Base", "database", "schema.sql, agences.txt, users.txt"],
+    ["Base", "database", "schema.sql, agences.txt, users.txt (local) ou users_demo.txt (repli)"],
     ["Outils", "bin, tools", "install.php, check.php, phpunit, phpstan, makepdf.py"]
   ],
   "tables": [
@@ -45,10 +45,10 @@
     ["Rouge", "$danger", "#cd2c2e"],
     ["Fond clair", "$light", "#f1f8fc"]
   ],
-  "installation": "Prérequis : WAMP avec PHP 8.1+ et MariaDB actifs, extensions PDO, pdo_mysql et pdo_sqlite (tests).\n\n1. Copier .env.example vers .env et renseigner DB_DSN, DB_USER, DB_PASSWORD, ROOT_DB_USER, ROOT_DB_PASSWORD\n2. Démarrer MariaDB (port 3310 pour l'instance fournie)\n3. php composer.phar install   -> installe PHPUnit et PHPStan\n4. php bin/install.php         -> crée la base covoiturage et charge le jeu d'essais\n5. php -S 127.0.0.1:8000 -t public run-server.php\n6. Ouvrir http://127.0.0.1:8000 dans un navigateur",
+  "installation": "Prérequis : WAMP avec PHP 8.1+ et MariaDB actifs, extensions PDO, pdo_mysql et pdo_sqlite (tests).\n\n1. Copier .env.example vers .env et renseigner DB_DSN, DB_USER, DB_PASSWORD, ROOT_DB_USER, ROOT_DB_PASSWORD\n2. Démarrer MariaDB (port 3310 pour l'instance fournie)\n3. composer install   -> installe PHPUnit et PHPStan (composer.phar n'est pas versionné)\n4. php bin/install.php         -> crée la base covoiturage et charge le jeu d'essais (users.txt s'il est présent, sinon users_demo.txt)\n5. php -S 127.0.0.1:8000 -t public run-server.php\n6. Ouvrir http://127.0.0.1:8000 dans un navigateur",
   "comptes": [
-    ["Administrateur", "alexandre.martin@email.fr", "Admin_2024!"],
-    ["Employé", "maxime.petit@email.fr", "Passw0rd!"]
+    ["Administrateur", "admin.demo@example.com", "Admin_2024!"],
+    ["Employé", "usager01@example.com", "Passw0rd!"]
   ],
   "tests": [
     ["PHPUnit", "php bin/phpunit", "11 tests, 0 échec, 25 assertions (base SQLite en mémoire)"],
@@ -59,7 +59,7 @@
     "Aucune fonction de réservation de place : le nombre de places disponibles est ajusté par l'auteur du trajet lors de la modification.",
     "Les tests utilisent une base SQLite en mémoire : ils sont isolés de la base MariaDB réelle et ne modifient aucune donnée.",
     "Les comptes de démonstration utilisent des mots de passe connus (exigés par le cahier des charges) : ils doivent être changés en production.",
-    "L'historique Git contient encore un ancien mot de passe de base de données ; sa purge est une opération destructive distincte, volontairement non réalisée.",
+    "L'historique Git contient encore un ancien mot de passe de base de données ; le mot de passe applicatif a été renouvelé côté MariaDB (l'ancien est invalidé), mais l'historique n'a pas été réécrit. Sa purge est une opération destructive distincte, volontairement non réalisée.",
     "Le dossier ne contient pas encore le lien du dépôt GitHub ni le nom de l'étudiant, non fournis à ce jour."
   ]
 }
